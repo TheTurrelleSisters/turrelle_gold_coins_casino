@@ -2,355 +2,473 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#05000f">
+<meta name="theme-color" content="#0a0005">
 <meta name="apple-mobile-web-app-title" content="Gold Coins Casino">
 <link rel="manifest" href="manifest.json">
 <title>The Turrelle Sisters Gold Coins Casino</title>
 <style>
 :root {
-  --gold:   #ffd700;
-  --gold2:  #ffaa00;
-  --gold-dk:#8b6800;
-  --red:    #ff3300;
-  --bg:     #05000f;
-  --bg2:    #0f0020;
-  --neon-p: #cc00ff;
-  --neon-b: #0088ff;
-  --neon-g: #00ff88;
-  --text:   #f0e0ff;
-  --dim:    #7755aa;
+  --gold:    #ffd700;
+  --gold2:   #ffaa00;
+  --golddk:  #8b6800;
+  --red:     #ff3300;
+  --pink:    #ff44aa;
+  --purple:  #cc00ff;
+  --bg:      #0a0005;
+  --bg2:     #150010;
+  --bg3:     #200018;
+  --velvet:  #1a0012;
+  --text:    #f5e6ff;
+  --dim:     #886699;
 }
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-html, body {
-  height: 100%; background: var(--bg); color: var(--text);
-  font-family: 'Arial Black', Arial, sans-serif;
-  overflow: hidden; user-select: none;
-}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none;}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Arial Black',Arial,sans-serif;overflow:hidden;}
 
-/* ── NEON SCANLINES ── */
-body::before {
-  content: ''; position: fixed; inset: 0; pointer-events: none;
-  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.08) 2px, rgba(0,0,0,.08) 4px);
-  z-index: 1;
-}
+/* ── SCANLINES ── */
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.06) 3px,rgba(0,0,0,.06) 4px);}
 
-/* ── HEADER ── */
-#hdr {
-  position: relative; z-index: 2; flex-shrink: 0;
-  background: linear-gradient(180deg, #0f0020 0%, #05000f 100%);
-  border-bottom: 2px solid var(--gold-dk);
-  padding: 10px 16px 8px;
-  text-align: center;
-}
-#hdr-marquee {
-  font-size: 8px; letter-spacing: 3px; color: var(--neon-p);
-  text-transform: uppercase; margin-bottom: 4px;
-  text-shadow: 0 0 6px var(--neon-p);
-  overflow: hidden; white-space: nowrap;
-}
-#casino-name {
-  font-size: clamp(14px, 4vw, 20px);
-  font-weight: 900; letter-spacing: 2px;
-  color: var(--gold);
-  text-shadow: 0 0 10px #ff8800, 0 0 20px #ff4400;
-  line-height: 1.2;
-}
-#casino-sub {
-  font-size: 9px; letter-spacing: 4px; color: var(--dim);
-  text-transform: uppercase; margin-top: 2px;
-}
+/* ── MAIN LAYOUT ── */
+#wrap{display:flex;flex-direction:column;height:100%;position:relative;}
 
-/* ── PROGRESSIVE JACKPOT BANNER ── */
-#prog-banner {
-  position: relative; z-index: 2; flex-shrink: 0;
-  background: linear-gradient(135deg, #1a0000, #3a0010, #1a0000);
-  border-bottom: 2px solid #ff4400;
-  padding: 6px 16px;
-  display: flex; align-items: center; justify-content: space-between;
-}
-#prog-lbl {
-  font-size: 8px; letter-spacing: 3px; color: #ff8844;
-  text-shadow: 0 0 4px #ff4400;
-}
-#prog-val {
-  font-size: 26px; font-weight: 900; color: #ffdd00;
-  text-shadow: 0 0 10px #ff6600, 0 0 20px #ff3300;
-  animation: pulse 1.8s ease-in-out infinite;
-  letter-spacing: 1px;
-}
-#prog-tag { font-size: 8px; color: #cc4400; letter-spacing: 1px; text-align: right; }
-@keyframes pulse {
-  0%,100%{ text-shadow:0 0 10px #ff6600,0 0 20px #ff3300; }
-  50%    { text-shadow:0 0 18px #ffaa00,0 0 35px #ff6600,0 0 50px #ff2200; }
-}
+/* ── BANNER ── */
+#banner{flex-shrink:0;position:relative;overflow:hidden;max-height:15vh;}
+#banner img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block;}
+#banner::after{content:'';position:absolute;inset:0;
+  background:linear-gradient(180deg,transparent 40%,var(--bg) 100%);pointer-events:none;}
+#marquee-wrap{position:absolute;bottom:0;left:0;right:0;overflow:hidden;height:18px;z-index:2;}
+#marquee{display:flex;animation:marquee 18s linear infinite;white-space:nowrap;}
+#marquee span{font-size:8px;letter-spacing:3px;color:var(--gold);padding:2px 40px;text-transform:uppercase;
+  text-shadow:0 0 6px var(--gold);}
+@keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 
-/* ── CAROUSEL WRAPPER ── */
-#carousel-wrap {
-  flex: 1; position: relative; overflow: hidden; z-index: 2;
-  display: flex; flex-direction: column;
+/* ── PROGRESSIVE BANNER ── */
+#prog-banner{
+  flex-shrink:0;
+  background:linear-gradient(135deg,#1a0000,#3a0010,#250020,#1a0000);
+  border-top:1px solid #ff440055;border-bottom:2px solid #ff4400;
+  padding:6px 14px 5px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:relative;overflow:hidden;
 }
-#carousel-hint {
-  text-align: center; font-size: 9px; color: var(--dim);
-  letter-spacing: 2px; padding: 6px 0 4px; flex-shrink: 0;
-  animation: hint-fade 3s ease-in-out 2s forwards;
+#prog-banner::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at center,rgba(255,50,0,.08) 0%,transparent 70%);
+  animation:prog-glow 3s ease-in-out infinite;pointer-events:none;}
+@keyframes prog-glow{0%,100%{opacity:.5}50%{opacity:1}}
+#prog-left{display:flex;flex-direction:column;}
+#prog-lbl{font-size:7px;letter-spacing:3px;color:#ff8844;text-transform:uppercase;
+  text-shadow:0 0 6px #ff4400;}
+#prog-val{font-size:clamp(22px,6vw,30px);font-weight:900;color:#ffdd00;
+  text-shadow:0 0 10px #ff6600,0 0 20px #ff3300,0 0 40px #ff1100;
+  animation:prog-pulse 2s ease-in-out infinite;line-height:1;}
+@keyframes prog-pulse{
+  0%,100%{text-shadow:0 0 10px #ff6600,0 0 20px #ff3300;}
+  50%{text-shadow:0 0 20px #ffaa00,0 0 40px #ff6600,0 0 60px #ff2200;}
 }
-@keyframes hint-fade { to { opacity: 0; } }
+#prog-right{text-align:right;}
+#prog-tag{font-size:7px;color:#cc4400;letter-spacing:1px;line-height:1.4;}
+#prog-seed{font-size:8px;color:#884422;letter-spacing:1px;}
 
-#carousel {
-  flex: 1; display: flex; overflow-x: auto; overflow-y: hidden;
-  scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
-  scrollbar-width: none; gap: 0;
+/* ── SASHA GREETER ── */
+#greeter{
+  position:absolute;right:-10px;bottom:0;
+  height:120px;width:75px;
+  overflow:hidden;pointer-events:none;z-index:10;
+  -webkit-mask-image:linear-gradient(to right,transparent 0%,black 30%);
+  mask-image:linear-gradient(to right,transparent 0%,black 30%);
 }
-#carousel::-webkit-scrollbar { display: none; }
+#greeter video{height:100%;width:auto;object-fit:contain;object-position:center bottom;}
+
+/* ── CAROUSEL ── */
+#carousel-section{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative;}
+#carousel-hint{text-align:center;font-size:8px;color:var(--dim);letter-spacing:2px;
+  padding:5px 0 3px;flex-shrink:0;opacity:1;transition:opacity 1s;text-transform:uppercase;}
+#carousel{
+  flex:1;display:flex;overflow-x:auto;overflow-y:hidden;
+  scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;
+  scrollbar-width:none;
+}
+#carousel::-webkit-scrollbar{display:none;}
 
 /* ── GAME CARDS ── */
-.game-card {
-  min-width: 100%; height: 100%;
-  scroll-snap-align: center;
-  display: flex; flex-direction: column; align-items: center;
-  justify-content: space-between;
-  padding: 14px 20px 20px;
-  position: relative;
+.card{
+  min-width:100%;height:100%;scroll-snap-align:center;
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:flex-start;padding:8px 16px 12px;
+  position:relative;overflow:hidden;
 }
 
-.card-glow {
-  position: absolute; inset: 0; pointer-events: none; border-radius: 0;
-  opacity: .3; transition: opacity .4s;
-}
-.game-card:nth-child(1) .card-glow { background: radial-gradient(ellipse at center, rgba(0,136,255,.3) 0%, transparent 70%); }
-.game-card:nth-child(2) .card-glow { background: radial-gradient(ellipse at center, rgba(255,51,0,.25) 0%, transparent 70%); }
-.game-card:nth-child(3) .card-glow { background: radial-gradient(ellipse at center, rgba(204,0,255,.25) 0%, transparent 70%); }
+/* Card background glow per game */
+.card:nth-child(1)::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at center top,rgba(0,100,255,.15) 0%,transparent 60%);pointer-events:none;}
+.card:nth-child(2)::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at center top,rgba(255,50,0,.12) 0%,transparent 60%);pointer-events:none;}
+.card:nth-child(3)::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at center top,rgba(180,0,255,.12) 0%,transparent 60%);pointer-events:none;}
 
-.card-badge {
-  background: rgba(0,0,0,.6); border: 1.5px solid;
-  border-radius: 20px; padding: 3px 14px;
-  font-size: 10px; letter-spacing: 2px; font-weight: 700;
-  text-transform: uppercase; align-self: flex-end;
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;width:100%;margin-bottom:6px;}
+.card-badge{
+  padding:3px 12px;border-radius:20px;font-size:9px;
+  letter-spacing:2px;font-weight:900;text-transform:uppercase;
+  border:1.5px solid;background:rgba(0,0,0,.5);
 }
-.card-badge.d1  { border-color: var(--neon-b); color: var(--neon-b); }
-.card-badge.d5  { border-color: var(--red);    color: var(--red); }
-.card-badge.sis { border-color: var(--neon-p); color: var(--neon-p); }
+.badge-1d {border-color:#0088ff;color:#0088ff;}
+.badge-5d {border-color:#ff3300;color:#ff3300;}
+.badge-sis{border-color:#cc00ff;color:#cc00ff;}
 
-.card-art {
-  flex: 1; display: flex; align-items: center; justify-content: center;
-  width: 100%; max-height: 40%;
+.card-img-wrap{
+  width:100%;flex:1;min-height:0;
+  border-radius:14px;overflow:hidden;
+  border:2px solid;position:relative;
+  box-shadow:0 0 20px currentColor;
+  margin-bottom:8px;max-height:35%;
 }
-.card-icon {
-  width: clamp(80px, 35vw, 150px); height: clamp(80px, 35vw, 150px);
-  border-radius: 20px; border: 3px solid;
-  display: flex; align-items: center; justify-content: center;
-  font-size: clamp(36px, 14vw, 64px);
-  background: rgba(0,0,0,.5);
-  box-shadow: 0 0 20px currentColor;
-}
-.game-card:nth-child(1) .card-icon { border-color: var(--neon-b); color: var(--neon-b); }
-.game-card:nth-child(2) .card-icon { border-color: var(--red);    color: var(--red); }
-.game-card:nth-child(3) .card-icon { border-color: var(--neon-p); color: var(--neon-p); }
+.card:nth-child(1) .card-img-wrap{border-color:#0088ff;color:#0088ff;}
+.card:nth-child(2) .card-img-wrap{border-color:#ff3300;color:#ff3300;}
+.card:nth-child(3) .card-img-wrap{border-color:#cc00ff;color:#cc00ff;}
+.card-img-wrap img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block;}
+.card-img-wrap::after{content:'';position:absolute;inset:0;
+  background:linear-gradient(180deg,transparent 50%,rgba(0,0,0,.7) 100%);pointer-events:none;}
 
-.card-info { width: 100%; text-align: center; }
-.card-name {
-  font-size: clamp(16px, 5vw, 22px); font-weight: 900;
-  letter-spacing: 1px; line-height: 1.2; margin-bottom: 4px;
+.card-name{
+  font-size:clamp(16px,5vw,22px);font-weight:900;
+  text-align:center;line-height:1.15;margin-bottom:3px;
+  text-transform:uppercase;letter-spacing:1px;
 }
-.game-card:nth-child(1) .card-name { color: var(--neon-b); text-shadow: 0 0 10px var(--neon-b); }
-.game-card:nth-child(2) .card-name { color: var(--red);    text-shadow: 0 0 10px var(--red); }
-.game-card:nth-child(3) .card-name { color: var(--neon-p); text-shadow: 0 0 10px var(--neon-p); }
+.card:nth-child(1) .card-name{color:#0088ff;text-shadow:0 0 10px #0088ff,0 0 20px #0044ff;}
+.card:nth-child(2) .card-name{color:#ff4400;text-shadow:0 0 10px #ff4400,0 0 20px #cc2200;}
+.card:nth-child(3) .card-name{color:#cc00ff;text-shadow:0 0 10px #cc00ff,0 0 20px #8800cc;}
 
-.card-desc {
-  font-size: 10px; color: var(--dim); letter-spacing: 1px;
-  font-family: Arial, sans-serif; font-weight: normal;
-  margin-bottom: 12px;
+.card-desc{font-size:9px;color:var(--dim);letter-spacing:1px;text-align:center;
+  margin-bottom:5px;font-family:Arial,sans-serif;font-weight:normal;}
+.card-jp{font-size:10px;color:#ffdd00;margin-bottom:10px;text-align:center;
+  text-shadow:0 0 6px #ff6600;}
+
+.play-btn{
+  width:100%;max-width:280px;padding:13px 0;
+  border-radius:10px;border:none;
+  font-size:13px;font-weight:900;letter-spacing:3px;
+  text-transform:uppercase;cursor:pointer;
+  text-decoration:none;display:block;text-align:center;
+  font-family:'Arial Black',Arial,sans-serif;
+  transition:transform .1s,box-shadow .15s;
 }
-.card-jp {
-  font-size: 11px; color: #ffdd00; letter-spacing: 1px;
-  margin-bottom: 14px; opacity: .9;
-}
-.play-btn {
-  width: 100%; max-width: 260px; padding: 14px 0;
-  border-radius: 12px; border: none;
-  font-size: 14px; font-weight: 900; letter-spacing: 3px;
-  text-transform: uppercase; cursor: pointer;
-  transition: transform .1s, box-shadow .1s;
-  text-decoration: none; display: block; text-align: center;
-  font-family: 'Arial Black', Arial, sans-serif;
-}
-.play-btn:active { transform: scale(.96); }
-.game-card:nth-child(1) .play-btn {
-  background: linear-gradient(135deg,#003a6a,#0066cc);
-  color: #fff; box-shadow: 0 4px 20px rgba(0,136,255,.5);
-  border: 1.5px solid var(--neon-b);
-}
-.game-card:nth-child(2) .play-btn {
-  background: linear-gradient(135deg,#4a0000,#cc2200);
-  color: #fff; box-shadow: 0 4px 20px rgba(255,51,0,.5);
-  border: 1.5px solid var(--red);
-}
-.game-card:nth-child(3) .play-btn {
-  background: linear-gradient(135deg,#3a006a,#8800cc);
-  color: #fff; box-shadow: 0 4px 20px rgba(204,0,255,.5);
-  border: 1.5px solid var(--neon-p);
-}
+.play-btn:active{transform:scale(.95);}
+.card:nth-child(1) .play-btn{
+  background:linear-gradient(135deg,#003a8a,#0066cc,#004499);
+  color:#fff;border:1.5px solid #0088ff;
+  box-shadow:0 4px 20px rgba(0,136,255,.5);}
+.card:nth-child(2) .play-btn{
+  background:linear-gradient(135deg,#5a0000,#cc2200,#881100);
+  color:#fff;border:1.5px solid #ff3300;
+  box-shadow:0 4px 20px rgba(255,50,0,.5);}
+.card:nth-child(3) .play-btn{
+  background:linear-gradient(135deg,#3a006a,#8800cc,#550088);
+  color:#fff;border:1.5px solid #cc00ff;
+  box-shadow:0 4px 20px rgba(200,0,255,.5);}
 
 /* ── DOTS ── */
-#dots {
-  display: flex; justify-content: center; gap: 8px;
-  padding: 10px 0 14px; z-index: 2; flex-shrink: 0;
-}
-.dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: var(--dim); transition: background .2s, transform .2s;
-}
-.dot.active { background: var(--gold); transform: scale(1.4); }
+#dots{display:flex;justify-content:center;gap:8px;padding:8px 0 10px;flex-shrink:0;}
+.dot{width:7px;height:7px;border-radius:50%;background:#333;
+  transition:background .2s,transform .2s,box-shadow .2s;}
+.dot.active{background:var(--gold);transform:scale(1.5);
+  box-shadow:0 0 6px var(--gold);}
 
 /* ── FOOTER ── */
-#footer {
-  z-index: 2; flex-shrink: 0; text-align: center;
-  padding: 4px 0 8px;
-  font-size: 8px; color: var(--dim); letter-spacing: 2px;
+#footer{flex-shrink:0;text-align:center;padding:3px 0 env(safe-area-inset-bottom,6px);
+  font-size:7px;color:#441133;letter-spacing:2px;font-family:Arial,sans-serif;font-weight:normal;}
+
+/* ── INSTALL PROMO (for standalone game players) ── */
+#install-promo{
+  position:fixed;bottom:0;left:0;right:0;z-index:500;
+  background:linear-gradient(135deg,#150010,#250020);
+  border-top:2px solid var(--gold);
+  padding:10px 14px 10px;
+  display:flex;align-items:center;justify-content:space-between;
+  transform:translateY(100%);transition:transform .4s ease;
+  box-shadow:0 -4px 20px rgba(255,215,0,.2);
 }
+#install-promo.show{transform:translateY(0);}
+#promo-text{flex:1;}
+#promo-title{font-size:11px;color:var(--gold);font-weight:900;letter-spacing:1px;margin-bottom:2px;}
+#promo-sub{font-size:9px;color:var(--dim);font-family:Arial,sans-serif;font-weight:normal;}
+#promo-btn{
+  padding:8px 14px;border-radius:8px;border:none;margin-left:10px;flex-shrink:0;
+  background:linear-gradient(135deg,#5a3800,#b8860b);
+  color:var(--gold);font-size:10px;font-weight:900;letter-spacing:1px;
+  cursor:pointer;text-transform:uppercase;
+}
+#promo-close{
+  width:24px;height:24px;border-radius:50%;border:1px solid #444;
+  background:rgba(0,0,0,.5);color:#888;font-size:14px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  margin-left:8px;flex-shrink:0;
+}
+
+/* ── JACKPOT CELEBRATION OVERLAY ── */
+#jp-celebrate{
+  position:fixed;inset:0;z-index:9000;
+  background:rgba(0,0,0,.92);
+  display:none;flex-direction:column;
+  align-items:center;justify-content:center;
+}
+#jp-celebrate.show{display:flex;}
+#jp-cel-video{height:55%;width:auto;max-width:90%;}
+#jp-cel-title{font-size:clamp(20px,7vw,32px);color:var(--gold);
+  text-shadow:0 0 20px #ff6600;font-weight:900;letter-spacing:2px;
+  margin:10px 0 4px;text-align:center;}
+#jp-cel-amt{font-size:clamp(28px,9vw,48px);color:#ffdd00;
+  text-shadow:0 0 20px #ff4400;font-weight:900;margin-bottom:16px;}
+#jp-cel-close{padding:12px 32px;border-radius:10px;border:none;
+  background:linear-gradient(135deg,#5a3800,#b8860b);
+  color:var(--gold);font-size:13px;font-weight:900;letter-spacing:2px;cursor:pointer;}
+
+/* ── LOBBY ATTITUDE CHECK ── */
+#lobby-ac{position:fixed;inset:0;z-index:9500;background:rgba(0,0,0,.93);
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  gap:12px;padding:24px;}
+#lobby-ac.show{display:flex;}
+#lac-vid{height:45%;width:auto;max-width:88%;border-radius:10px;}
+#lac-title{font-size:clamp(26px,8vw,38px);font-weight:900;color:#ffd700;
+  text-shadow:0 0 18px #ff6600;text-align:center;line-height:1.15;
+  animation:lac-pulse 1s ease-in-out infinite;}
+@keyframes lac-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+#lac-sub{font-size:13px;color:#ffaa00;letter-spacing:1px;text-align:center;}
+#lac-amt{font-size:clamp(30px,10vw,48px);font-weight:900;color:#ffdd00;
+  text-shadow:0 0 22px #ff4400;letter-spacing:2px;}
+#lac-msg{font-size:10px;color:#886699;text-align:center;line-height:1.6;
+  font-family:Arial,sans-serif;font-weight:normal;}
+#lac-dismiss{padding:13px 34px;border-radius:10px;border:none;
+  background:linear-gradient(135deg,#3a006a,#8800cc);
+  color:#fff;font-size:13px;font-weight:900;letter-spacing:2px;cursor:pointer;}
+
 </style>
 </head>
 <body>
-<div style="display:flex;flex-direction:column;height:100%">
+<div id="wrap">
 
-  <div id="hdr">
-    <div id="hdr-marquee">&#9733; Welcome to The Turrelle Sisters Gold Coins Casino &#9733;</div>
-    <div id="casino-name">THE TURRELLE SISTERS<br>GOLD COINS CASINO</div>
-    <div id="casino-sub">Stray-Pup LLC &bull; Est. 2025</div>
+  <!-- BANNER -->
+  <div id="banner">
+    <img src="assets/images/lobby_banner.jpg" alt="The Turrelle Sisters Gold Coins Casino">
+    <div id="marquee-wrap">
+      <div id="marquee">
+        <span>&#9733; Welcome to The Turrelle Sisters Gold Coins Casino &#9733; Play Now &#9733; Progressive Jackpot Live &#9733; All 3 Games Connected &#9733;</span>
+        <span>&#9733; Welcome to The Turrelle Sisters Gold Coins Casino &#9733; Play Now &#9733; Progressive Jackpot Live &#9733; All 3 Games Connected &#9733;</span>
+      </div>
+    </div>
   </div>
 
+  <!-- PROGRESSIVE BANNER -->
   <div id="prog-banner">
-    <div>
-      <div id="prog-lbl">&#9733; SHARED PROGRESSIVE JACKPOT &#9733;</div>
+    <div id="prog-left">
+      <div id="prog-lbl">&#9733; Shared Progressive Jackpot &#9733;</div>
       <div id="prog-val">$500.00</div>
     </div>
-    <div id="prog-tag">FEEDS ALL<br>3 GAMES</div>
+    <div id="prog-right">
+      <div id="prog-tag">FEEDS ALL<br>3 GAMES</div>
+      <div id="prog-seed">Seed: $500.00</div>
+    </div>
+    <!-- Sasha greeter -->
+    <div id="greeter">
+      <video id="greeter-vid" autoplay loop muted playsinline
+        src="assets/videos/sasha_dance.mp4"></video>
+    </div>
   </div>
 
-  <div id="carousel-wrap">
-    <div id="carousel-hint">&#8592; SWIPE TO BROWSE GAMES &#8594;</div>
+  <!-- CAROUSEL -->
+  <div id="carousel-section">
+    <div id="carousel-hint">&#8592;&nbsp; SWIPE TO BROWSE &nbsp;&#8594;</div>
     <div id="carousel">
 
-      <!-- GAME 1: StrayPups $1 -->
-      <div class="game-card">
-        <div class="card-glow"></div>
-        <div class="card-badge d1">$1 DENOM</div>
-        <div class="card-art">
-          <div class="card-icon">&#128054;</div>
+      <!-- CARD 1: StrayPups $1 -->
+      <div class="card">
+        <div class="card-top">
+          <div style="font-size:9px;color:var(--dim);letter-spacing:1px">STRAYPUPS</div>
+          <div class="card-badge badge-1d">$1 DENOM</div>
         </div>
-        <div class="card-info">
-          <div class="card-name">STRAYPUPS<br>BIG MUNNY</div>
-          <div class="card-desc">3-Reel &bull; 1 Payline &bull; Class II Bingo &bull; $1&ndash;$3 Bet</div>
-          <div class="card-jp">&#9733; Progressive Jackpot: <span class="prog-inline">$500.00</span></div>
-          <a class="play-btn" href="https://theturrellesisters.github.io/straypups_big_munny_v5_27_PWA/index.html" id="link-sp1">PLAY NOW</a>
+        <div class="card-img-wrap">
+          <img src="assets/images/straypups_splash.jpg" alt="StrayPups Big Munny">
         </div>
+        <div class="card-name">StrayPups<br>Big Munny</div>
+        <div class="card-desc">3-Reel &bull; 1 Payline &bull; Class II Bingo &bull; $1&ndash;$3 Bet</div>
+        <div class="card-jp">&#9733; Progressive Jackpot: <span class="prog-inline">$500.00</span></div>
+        <a class="play-btn" id="btn-sp1"
+          href="https://theturrellesisters.github.io/straypups_big_munny_v5_27_PWA/index.html">
+          PLAY NOW
+        </a>
       </div>
 
-      <!-- GAME 2: StrayPups $5 -->
-      <div class="game-card">
-        <div class="card-glow"></div>
-        <div class="card-badge d5">$5 DENOM</div>
-        <div class="card-art">
-          <div class="card-icon">&#128054;</div>
+      <!-- CARD 2: StrayPups $5 -->
+      <div class="card">
+        <div class="card-top">
+          <div style="font-size:9px;color:var(--dim);letter-spacing:1px">STRAYPUPS</div>
+          <div class="card-badge badge-5d">$5 DENOM</div>
         </div>
-        <div class="card-info">
-          <div class="card-name">STRAYPUPS<br>BIG MUNNY</div>
-          <div class="card-desc">3-Reel &bull; 1 Payline &bull; Class II Bingo &bull; $5&ndash;$15 Bet</div>
-          <div class="card-jp">&#9733; Progressive Jackpot: <span class="prog-inline">$500.00</span></div>
-          <a class="play-btn" href="https://theturrellesisters.github.io/straypups_big_munny_5d/index.html" id="link-sp5">PLAY NOW</a>
+        <div class="card-img-wrap">
+          <img src="assets/images/straypups_splash.jpg" alt="StrayPups Big Munny $5">
         </div>
+        <div class="card-name">StrayPups<br>Big Munny</div>
+        <div class="card-desc">3-Reel &bull; 1 Payline &bull; Class II Bingo &bull; $5&ndash;$15 Bet</div>
+        <div class="card-jp">&#9733; Progressive Jackpot: <span class="prog-inline">$500.00</span></div>
+        <a class="play-btn" id="btn-sp5"
+          href="https://theturrellesisters.github.io/straypups_big_munny_5d/index.html">
+          PLAY NOW
+        </a>
       </div>
 
-      <!-- GAME 3: Turrelle Sisters -->
-      <div class="game-card">
-        <div class="card-glow"></div>
-        <div class="card-badge sis">SISTERS</div>
-        <div class="card-art">
-          <div class="card-icon">&#10084;</div>
+      <!-- CARD 3: Turrelle Sisters -->
+      <div class="card">
+        <div class="card-top">
+          <div style="font-size:9px;color:var(--dim);letter-spacing:1px">THE TURRELLE SISTERS</div>
+          <div class="card-badge badge-sis">SISTERS</div>
         </div>
-        <div class="card-info">
-          <div class="card-name">THE TURRELLE<br>SISTERS</div>
-          <div class="card-desc">5-Reel &bull; 20 Paylines &bull; MINI/MINOR/MAJOR/GRAND JP</div>
-          <div class="card-jp">&#9733; Grand Jackpot: <span id="grand-val">$5,000.00</span></div>
-          <a class="play-btn" href="https://theturrellesisters.github.io/TSBIGMUNNY/index.html" id="link-ts">PLAY NOW</a>
+        <div class="card-img-wrap">
+          <img src="assets/images/turrelle_splash.jpg" alt="The Turrelle Sisters Big Munny">
         </div>
+        <div class="card-name">The Turrelle<br>Sisters</div>
+        <div class="card-desc">5-Reel &bull; 20 Paylines &bull; MINI / MINOR / MAJOR / GRAND</div>
+        <div class="card-jp">&#9733; Progressive Jackpot: <span class="prog-inline">$500.00</span></div>
+        <a class="play-btn" id="btn-ts"
+          href="https://theturrellesisters.github.io/TSBIGMUNNY/index.html">
+          PLAY NOW
+        </a>
       </div>
 
     </div><!-- end carousel -->
-  </div><!-- end carousel-wrap -->
+  </div>
 
   <div id="dots">
     <div class="dot active" id="dot-0"></div>
-    <div class="dot"        id="dot-1"></div>
-    <div class="dot"        id="dot-2"></div>
+    <div class="dot" id="dot-1"></div>
+    <div class="dot" id="dot-2"></div>
   </div>
 
-  <div id="footer">STRAY-PUP LLC &bull; THE TURRELLE SISTERS LLC &bull; FOR TESTING ONLY</div>
+  <div id="footer">STRAY-PUP LLC &bull; THE TURRELLE SISTERS LLC &bull; FOR ENTERTAINMENT PURPOSES ONLY</div>
+</div>
 
-</div><!-- end flex wrapper -->
+<!-- JACKPOT CELEBRATION -->
+<div id="jp-celebrate">
+  <video id="jp-cel-video" autoplay loop muted playsinline
+    src="assets/videos/josie_dance.mp4"></video>
+  <div id="jp-cel-title">PROGRESSIVE JACKPOT HIT!</div>
+  <div id="jp-cel-amt" id="jp-cel-amt">$0.00</div>
+  <button id="jp-cel-close" onclick="document.getElementById('jp-celebrate').classList.remove('show')">
+    CONTINUE
+  </button>
+</div>
 
 <script>
-/* ── SUPABASE CONFIG (same as games) ── */
+/* ── SUPABASE CONFIG ── */
 var SUPABASE_URL      = 'https://gdmmoeggkqsvqnqyrubx.supabase.co';
 var SUPABASE_ANON_KEY = 'sb_publishable_NGsKBAUUsVUvD5XKTblIdw_aBDPldSd';
 
-/* ── GAME URLs — replace with your actual GitHub Pages URLs ─────────────
-   Example: 'https://apashchenko918.github.io/straypups-1d'
-   ────────────────────────────────────────────────────────────────────── */
-document.getElementById('link-sp1').href = 'https://theturrellesisters.github.io/straypups_big_munny_v5_27_PWA/index.html';
-document.getElementById('link-sp5').href = 'https://theturrellesisters.github.io/straypups_big_munny_5d/index.html';
-document.getElementById('link-ts').href  = 'https://theturrellesisters.github.io/TSBIGMUNNY/index.html';
-
-/* ── Carousel dot tracking ── */
+/* ── CAROUSEL ── */
 var carousel = document.getElementById('carousel');
+var _lastIdx = 0;
 carousel.addEventListener('scroll', function() {
   var idx = Math.round(carousel.scrollLeft / carousel.offsetWidth);
-  for (var i = 0; i < 3; i++) {
-    document.getElementById('dot-' + i).classList.toggle('active', i === idx);
+  if (idx !== _lastIdx) {
+    _lastIdx = idx;
+    for (var i = 0; i < 3; i++) {
+      document.getElementById('dot-' + i).classList.toggle('active', i === idx);
+    }
   }
 }, { passive: true });
 
-/* ── Progressive meter — connect to Supabase ── */
+/* Fade out hint after first swipe */
+carousel.addEventListener('scroll', function fadeHint() {
+  document.getElementById('carousel-hint').style.opacity = '0';
+  carousel.removeEventListener('scroll', fadeHint);
+}, { passive: true, once: true });
+
+/* ── PROGRESSIVE LIVE METER ── */
 function updateProgDisplay(val) {
-  var display = '$' + Number(val).toFixed(2);
-  document.getElementById('prog-val').textContent  = display;
-  var els = document.querySelectorAll('.prog-inline');
-  for (var i = 0; i < els.length; i++) els[i].textContent = display;
+  var disp = '$' + Number(val).toFixed(2);
+  document.getElementById('prog-val').textContent = disp;
+  var inlines = document.querySelectorAll('.prog-inline');
+  for (var i = 0; i < inlines.length; i++) inlines[i].textContent = disp;
 }
 
-function loadProgressive() {
+function loadSupabase() {
   var s = document.createElement('script');
   s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
   s.onload = function() {
     try {
       var client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-      // Fetch current value
-      client.from('progressive').select('value').eq('id', 1).single().then(function(res) {
-        if (!res.error && res.data) updateProgDisplay(res.data.value);
+      /* Fetch current value */
+      client.from('progressive').select('value,seed').eq('id', 1).single().then(function(res) {
+        if (!res.error && res.data) {
+          updateProgDisplay(res.data.value);
+          document.getElementById('prog-seed').textContent = 'Seed: $' + Number(res.data.seed).toFixed(2);
+        }
       });
-      // Subscribe to live changes
+      /* Subscribe to live changes */
       client.channel('lobby-prog')
-        .on('postgres_changes', { event:'UPDATE', schema:'public', table:'progressive', filter:'id=eq.1' }, function(p) {
-          if (p.new && p.new.value != null) updateProgDisplay(p.new.value);
-        })
+        .on('postgres_changes', { event:'UPDATE', schema:'public', table:'progressive', filter:'id=eq.1' },
+          function(p) {
+            if (p.new && p.new.value != null) updateProgDisplay(p.new.value);
+          })
         .subscribe();
-    } catch(e) {
-      console.warn('Lobby Supabase error', e);
-    }
+      /* Subscribe to jackpot hits — show attitude check on lobby */
+      var _lobbyVids = ['assets/videos/josie_dance.mp4','assets/videos/sasha_dance.mp4','assets/videos/sasha_alt.mp4'];
+      var _lobbyVI = 0;
+      client.channel('lobby-hits')
+        .on('postgres_changes', { event:'INSERT', schema:'public', table:'progressive_hits' },
+          function(p) {
+            if (!p.new) return;
+            var amt = Number(p.new.amount || 0);
+            var amtEl = document.getElementById('lac-amt');
+            if (amtEl) amtEl.textContent = '$' + amt.toFixed(2);
+            var vid = document.getElementById('lac-vid');
+            if (vid) {
+              vid.src = _lobbyVids[Math.floor(Math.random() * _lobbyVids.length)];
+              vid.load(); vid.play();
+            }
+            var el = document.getElementById('lobby-ac');
+            if (el) el.classList.add('show');
+          })
+        .subscribe();
+    } catch(e) { console.warn('Lobby Supabase error', e); }
   };
   document.head.appendChild(s);
 }
 
-// Register service worker
+/* ── SERVICE WORKER ── */
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('service-worker.js').catch(function(){});
 }
 
-loadProgressive();
+/* ── GREETER VIDEO — alternate between sasha_dance and sasha_alt ── */
+var greeterVid = document.getElementById('greeter-vid');
+var greeterVideos = ['assets/videos/sasha_dance.mp4', 'assets/videos/sasha_alt.mp4'];
+var greeterIdx = 0;
+if (greeterVid) {
+  greeterVid.addEventListener('ended', function() {
+    greeterIdx = (greeterIdx + 1) % greeterVideos.length;
+    greeterVid.src = greeterVideos[greeterIdx];
+    greeterVid.play();
+  });
+}
+
+loadSupabase();
 </script>
+
+<!-- LOBBY ATTITUDE CHECK OVERLAY -->
+<div id="lobby-ac">
+  <video id="lac-vid" autoplay loop muted playsinline></video>
+  <div id="lac-title">ATTITUDE CHECK!!!</div>
+  <div style="font-size:13px;color:#ffaa00;letter-spacing:1px;text-align:center;margin:4px 0">Someone Just Won The Progressive Jackpot!</div>
+  <div id="lac-amt">$0.00</div>
+  <div style="font-size:11px;color:#886699;text-align:center;font-family:Arial,sans-serif;font-weight:normal;line-height:1.6">Keep playing for your chance!!!</div>
+  <button id="lac-dismiss" onclick="document.getElementById('lobby-ac').classList.remove('show')">GOT IT &#128074;</button>
+</div>
+
 </body>
 </html>
