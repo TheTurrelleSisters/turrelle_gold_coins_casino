@@ -1,4 +1,4 @@
-var CACHE_VER  = 'lobby-v1.2';
+var CACHE_VER  = 'lobby-v1.3';
 var CACHE_URLS = ['./index.html', './manifest.json'];
 self.addEventListener('install', function(e) {
   e.waitUntil(caches.open(CACHE_VER).then(function(c) { return c.addAll(CACHE_URLS); }).then(function() { return self.skipWaiting(); }));
