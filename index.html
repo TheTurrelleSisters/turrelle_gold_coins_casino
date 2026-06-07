@@ -31,17 +31,18 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none;}
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Arial Black',Arial,sans-serif;overflow:hidden;}
+#wrap{max-width:500px;margin:0 auto;height:100%;display:flex;flex-direction:column;position:relative;background:var(--bg);}
 
 /* ── SCANLINES ── */
 body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
   background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.06) 3px,rgba(0,0,0,.06) 4px);}
 
 /* ── MAIN LAYOUT ── */
-#wrap{display:flex;flex-direction:column;height:100%;position:relative;}
+
 
 /* ── BANNER ── */
-#banner{flex-shrink:0;position:relative;overflow:hidden;max-height:20vh;}
-#banner img{width:100%;height:100%;object-fit:contain;object-position:center center;display:block;background:#0a0005;}
+#banner{flex-shrink:0;position:relative;overflow:hidden;max-height:18vh;min-height:80px;}
+#banner img{width:100%;height:auto;max-height:18vh;object-fit:contain;object-position:center center;display:block;background:#0a0005;}
 #banner::after{content:'';position:absolute;inset:0;
   background:linear-gradient(180deg,transparent 40%,var(--bg) 100%);pointer-events:none;}
 #marquee-wrap{position:absolute;bottom:0;left:0;right:0;overflow:hidden;height:18px;z-index:2;}
@@ -79,13 +80,21 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
 
 /* ── SASHA GREETER ── */
 #greeter{
-  position:absolute;right:-10px;bottom:0;
-  height:120px;width:75px;
+  position:absolute;right:0px;bottom:0;
+  height:95%;width:auto;
   overflow:hidden;pointer-events:none;z-index:10;
-  -webkit-mask-image:linear-gradient(to right,transparent 0%,black 30%);
-  mask-image:linear-gradient(to right,transparent 0%,black 30%);
+  -webkit-mask-image:linear-gradient(to right,transparent 0%,black 25%,black 85%,transparent 100%);
+  mask-image:linear-gradient(to right,transparent 0%,black 25%,black 85%,transparent 100%);
 }
-#greeter video{height:100%;width:auto;object-fit:contain;object-position:center bottom;}
+#greeter video{height:100%;width:auto;object-fit:contain;object-position:center bottom;display:block;}
+
+
+/* Launch game — use location.href to stay within PWA shell (hides URL bar) */
+function launchGame(url) {
+  /* Store lobby URL so games can return */
+  try { sessionStorage.setItem('__lobby_url', window.location.href); } catch(e) {}
+  window.location.href = url;
+}
 
 /* ── CAROUSEL ── */
 #carousel-section{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative;}
@@ -102,7 +111,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
 .card{
   min-width:100%;height:100%;scroll-snap-align:center;
   display:flex;flex-direction:column;align-items:center;
-  justify-content:flex-start;padding:8px 16px 12px;
+  justify-content:space-between;padding:8px 16px 12px;
   position:relative;overflow:hidden;
 }
 
@@ -129,12 +138,12 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
   border-radius:14px;overflow:hidden;
   border:2px solid;position:relative;
   box-shadow:0 0 20px currentColor;
-  margin-bottom:8px;max-height:35%;
+  margin-bottom:8px;
 }
 .card:nth-child(1) .card-img-wrap{border-color:#0088ff;color:#0088ff;}
 .card:nth-child(2) .card-img-wrap{border-color:#ff3300;color:#ff3300;}
 .card:nth-child(3) .card-img-wrap{border-color:#cc00ff;color:#cc00ff;}
-.card-img-wrap img{width:100%;height:100%;object-fit:contain;object-position:center center;display:block;background:#050010;}
+.card-img-wrap img{width:100%;height:100%;object-fit:cover;object-position:center 20%;display:block;}
 .card-img-wrap::after{content:'';position:absolute;inset:0;
   background:linear-gradient(180deg,transparent 50%,rgba(0,0,0,.7) 100%);pointer-events:none;}
 
@@ -316,6 +325,33 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
   letter-spacing: 1px; cursor: pointer; text-transform: uppercase;
 }
 
+
+/* ── OPERATOR BROADCAST MESSAGE ── */
+#op-message-banner {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 8000;
+  background: linear-gradient(135deg, #0f0020, #1e0035, #0f0020);
+  border-bottom: 2px solid #ffd700;
+  padding: 10px 14px;
+  display: flex; align-items: flex-start; gap: 10px;
+  transform: translateY(-100%);
+  transition: transform .5s cubic-bezier(.25,.46,.45,.94);
+  box-shadow: 0 4px 20px rgba(255,215,0,.25);
+}
+#op-message-banner.show { transform: translateY(0); }
+#op-msg-icon { font-size: 22px; flex-shrink: 0; margin-top: 2px; }
+#op-msg-body { flex: 1; min-width: 0; }
+#op-msg-from { font-size: 8px; color: #ffd700; letter-spacing: 2px;
+  text-transform: uppercase; margin-bottom: 3px; font-family: Arial Black, Arial, sans-serif; }
+#op-msg-text { font-size: 12px; color: #f0e0ff; line-height: 1.4;
+  font-family: Arial, sans-serif; font-weight: normal; word-break: break-word; }
+#op-msg-close {
+  flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%;
+  border: 1px solid #444; background: rgba(0,0,0,.5);
+  color: #888; font-size: 14px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-family: Arial, sans-serif;
+}
+
 </style>
 </head>
 <body>
@@ -366,10 +402,10 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
         <div class="card-name">StrayPups<br>Big Munny</div>
         <div class="card-desc">3-Reel &bull; 1 Payline &bull; Class II Bingo &bull; $1&ndash;$3 Bet</div>
         <div class="card-jp">&#9733; Progressive Jackpot: <span class="prog-inline">$500.00</span></div>
-        <a class="play-btn" id="btn-sp1"
-          href="https://theturrellesisters.github.io/straypups_big_munny_v5_27_PWA/index.html">
+        <button class="play-btn" id="btn-sp1"
+          onclick="launchGame('https://theturrellesisters.github.io/straypups_big_munny_v5_27_PWA/index.html')">
           PLAY NOW
-        </a>
+        </button>
       </div>
 
       <!-- CARD 2: StrayPups $5 -->
@@ -384,10 +420,10 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
         <div class="card-name">StrayPups<br>Big Munny</div>
         <div class="card-desc">3-Reel &bull; 1 Payline &bull; Class II Bingo &bull; $5&ndash;$15 Bet</div>
         <div class="card-jp">&#9733; Progressive Jackpot: <span class="prog-inline">$500.00</span></div>
-        <a class="play-btn" id="btn-sp5"
-          href="https://theturrellesisters.github.io/straypups_big_munny_5d/index.html">
+        <button class="play-btn" id="btn-sp5"
+          onclick="launchGame('https://theturrellesisters.github.io/straypups_big_munny_5d/index.html')">
           PLAY NOW
-        </a>
+        </button>
       </div>
 
       <!-- CARD 3: Turrelle Sisters -->
@@ -402,10 +438,10 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
         <div class="card-name">The Turrelle<br>Sisters</div>
         <div class="card-desc">5-Reel &bull; 20 Paylines &bull; MINI / MINOR / MAJOR / GRAND</div>
         <div class="card-jp">&#9733; Progressive Jackpot: <span class="prog-inline">$500.00</span></div>
-        <a class="play-btn" id="btn-ts"
-          href="https://theturrellesisters.github.io/TSBIGMUNNY/index.html">
+        <button class="play-btn" id="btn-ts"
+          onclick="launchGame('https://theturrellesisters.github.io/TSBIGMUNNY/index.html')">
           PLAY NOW
-        </a>
+        </button>
       </div>
 
     </div><!-- end carousel -->
@@ -435,6 +471,14 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
 /* ── SUPABASE CONFIG ── */
 var SUPABASE_URL      = 'https://gdmmoeggkqsvqnqyrubx.supabase.co';
 var SUPABASE_ANON_KEY = 'sb_publishable_NGsKBAUUsVUvD5XKTblIdw_aBDPldSd';
+
+
+/* Launch game — use location.href to stay within PWA shell (hides URL bar) */
+function launchGame(url) {
+  /* Store lobby URL so games can return */
+  try { sessionStorage.setItem('__lobby_url', window.location.href); } catch(e) {}
+  window.location.href = url;
+}
 
 /* ── CAROUSEL ── */
 var carousel = document.getElementById('carousel');
@@ -638,5 +682,64 @@ loadSupabase();
 font-size:7px;color:rgba(255,215,0,0.18);letter-spacing:2px;pointer-events:none;
 z-index:1;font-family:Arial,sans-serif;font-weight:normal">
 GOLD COINS CASINO &bull; v2.4</div>
+
+<!-- OPERATOR BROADCAST MESSAGE BANNER -->
+<div id="op-message-banner">
+  <div id="op-msg-icon">&#128226;</div>
+  <div id="op-msg-body">
+    <div id="op-msg-from">&#9733; MESSAGE FROM GOLD COINS CASINO</div>
+    <div id="op-msg-text"></div>
+  </div>
+  <div id="op-msg-close" onclick="dismissOpMessage()">&#10005;</div>
+</div>
+<script>
+(function(){
+  var _msgQueue = [];
+  var _msgShowing = false;
+  var ICONS = { general:'&#128226;', jackpot:'&#127922;', event:'&#9889;', bonus:'&#127873;' };
+
+  function dismissOpMessage() {
+    var el = document.getElementById('op-message-banner');
+    if (el) el.classList.remove('show');
+    _msgShowing = false;
+    /* Show next queued message after short delay */
+    if (_msgQueue.length > 0) {
+      setTimeout(showNextMessage, 800);
+    }
+  }
+  window.dismissOpMessage = dismissOpMessage;
+
+  function showNextMessage() {
+    if (_msgQueue.length === 0) return;
+    var msg = _msgQueue.shift();
+    _msgShowing = true;
+    var el   = document.getElementById('op-message-banner');
+    var icon = document.getElementById('op-msg-icon');
+    var text = document.getElementById('op-msg-text');
+    if (icon) icon.innerHTML = ICONS[msg.type] || ICONS.general;
+    if (text) text.textContent = msg.message;
+    if (el) el.classList.add('show');
+    /* Auto-dismiss after 12 seconds */
+    setTimeout(function() {
+      if (_msgShowing) dismissOpMessage();
+    }, 12000);
+  }
+
+  function queueMessage(msg) {
+    _msgQueue.push(msg);
+    if (!_msgShowing) showNextMessage();
+  }
+
+  /* Hook into Progressive module once it's ready */
+  window.addEventListener('load', function() {
+    setTimeout(function() {
+      if (typeof Progressive !== 'undefined' && Progressive.onMessage) {
+        Progressive.onMessage(queueMessage);
+      }
+    }, 500);
+  });
+}());
+</script>
+
 </body>
 </html>

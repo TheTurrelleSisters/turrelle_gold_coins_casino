@@ -4,7 +4,7 @@
  * AUTO-UPDATE: Detects new version, clears old cache, reloads all clients silently.
  * Bump CACHE_VER on every release — everything else is automatic.
  */
-var CACHE_VER = 'lobby-v2.4';
+var CACHE_VER = 'lobby-v2.7';
 
 /* Files to pre-cache on install */
 var CACHE_URLS = ['./index.html','./manifest.json','./assets/images/lobby_banner.jpg','./assets/images/straypups_splash.jpg','./assets/images/turrelle_splash.jpg','./icons/icon-192x192.png','./icons/icon-512x512.png'];
