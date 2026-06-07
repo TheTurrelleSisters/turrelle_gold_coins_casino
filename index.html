@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#05000f">
+<meta name="apple-mobile-web-app-title" content="Gold Coins Casino">
+<link rel="manifest" href="manifest.json">
+<title>The Turrelle Sisters Gold Coins Casino</title>
+<style>
+:root {
+  --gold:   #ffd700;
+  --gold2:  #ffaa00;
+  --gold-dk:#8b6800;
+  --red:    #ff3300;
+  --bg:     #05000f;
+  --bg2:    #0f0020;
+  --neon-p: #cc00ff;
+  --neon-b: #0088ff;
+  --neon-g: #00ff88;
+  --text:   #f0e0ff;
+  --dim:    #7755aa;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body {
+  height: 100%; background: var(--bg); color: var(--text);
+  font-family: 'Arial Black', Arial, sans-serif;
+  overflow: hidden; user-select: none;
+}
+
+/* ── NEON SCANLINES ── */
+body::before {
+  content: ''; position: fixed; inset: 0; pointer-events: none;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.08) 2px, rgba(0,0,0,.08) 4px);
+  z-index: 1;
+}
+
+/* ── HEADER ── */
+#hdr {
+  position: relative; z-index: 2; flex-shrink: 0;
+  background: linear-gradient(180deg, #0f0020 0%, #05000f 100%);
+  border-bottom: 2px solid var(--gold-dk);
+  padding: 10px 16px 8px;
+  text-align: center;
+}
+#hdr-marquee {
+  font-size: 8px; letter-spacing: 3px; color: var(--neon-p);
+  text-transform: uppercase; margin-bottom: 4px;
+  text-shadow: 0 0 6px var(--neon-p);
+  overflow: hidden; white-space: nowrap;
+}
+#casino-name {
+  font-size: clamp(14px, 4vw, 20px);
+  font-weight: 900; letter-spacing: 2px;
+  color: var(--gold);
+  text-shadow: 0 0 10px #ff8800, 0 0 20px #ff4400;
+  line-height: 1.2;
+}
+#casino-sub {
+  font-size: 9px; letter-spacing: 4px; color: var(--dim);
+  text-transform: uppercase; margin-top: 2px;
+}
+
+/* ── PROGRESSIVE JACKPOT BANNER ── */
+#prog-banner {
+  position: relative; z-index: 2; flex-shrink: 0;
+  background: linear-gradient(135deg, #1a0000, #3a0010, #1a0000);
+  border-bottom: 2px solid #ff4400;
+  padding: 6px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+#prog-lbl {
+  font-size: 8px; letter-spacing: 3px; color: #ff8844;
+  text-shadow: 0 0 4px #ff4400;
+}
+#prog-val {
+  font-size: 26px; font-weight: 900; color: #ffdd00;
+  text-shadow: 0 0 10px #ff6600, 0 0 20px #ff3300;
+  animation: pulse 1.8s ease-in-out infinite;
+  letter-spacing: 1px;
+}
+#prog-tag { font-size: 8px; color: #cc4400; letter-spacing: 1px; text-align: right; }
+@keyframes pulse {
+  0%,100%{ text-shadow:0 0 10px #ff6600,0 0 20px #ff3300; }
+  50%    { text-shadow:0 0 18px #ffaa00,0 0 35px #ff6600,0 0 50px #ff2200; }
+}
+
+/* ── CAROUSEL WRAPPER ── */
+#carousel-wrap {
+  flex: 1; position: relative; overflow: hidden; z-index: 2;
+  display: flex; flex-direction: column;
+}
+#carousel-hint {
+  text-align: center; font-size: 9px; color: var(--dim);
+  letter-spacing: 2px; padding: 6px 0 4px; flex-shrink: 0;
+  animation: hint-fade 3s ease-in-out 2s forwards;
+}
+@keyframes hint-fade { to { opacity: 0; } }
+
+#carousel {
+  flex: 1; display: flex; overflow-x: auto; overflow-y: hidden;
+  scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; gap: 0;
+}
+#carousel::-webkit-scrollbar { display: none; }
+
+/* ── GAME CARDS ── */
+.game-card {
+  min-width: 100%; height: 100%;
+  scroll-snap-align: center;
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px 20px;
+  position: relative;
+}
+
+.card-glow {
+  position: absolute; inset: 0; pointer-events: none; border-radius: 0;
+  opacity: .3; transition: opacity .4s;
+}
+.game-card:nth-child(1) .card-glow { background: radial-gradient(ellipse at center, rgba(0,136,255,.3) 0%, transparent 70%); }
+.game-card:nth-child(2) .card-glow { background: radial-gradient(ellipse at center, rgba(255,51,0,.25) 0%, transparent 70%); }
+.game-card:nth-child(3) .card-glow { background: radial-gradient(ellipse at center, rgba(204,0,255,.25) 0%, transparent 70%); }
+
+.card-badge {
+  background: rgba(0,0,0,.6); border: 1.5px solid;
+  border-radius: 20px; padding: 3px 14px;
+  font-size: 10px; letter-spacing: 2px; font-weight: 700;
+  text-transform: uppercase; align-self: flex-end;
+}
+.card-badge.d1  { border-color: var(--neon-b); color: var(--neon-b); }
+.card-badge.d5  { border-color: var(--red);    color: var(--red); }
+.card-badge.sis { border-color: var(--neon-p); color: var(--neon-p); }
+
+.card-art {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  width: 100%; max-height: 40%;
+}
+.card-icon {
+  width: clamp(80px, 35vw, 150px); height: clamp(80px, 35vw, 150px);
+  border-radius: 20px; border: 3px solid;
+  display: flex; align-items: center; justify-content: center;
+  font-size: clamp(36px, 14vw, 64px);
+  background: rgba(0,0,0,.5);
+  box-shadow: 0 0 20px currentColor;
+}
+.game-card:nth-child(1) .card-icon { border-color: var(--neon-b); color: var(--neon-b); }
+.game-card:nth-child(2) .card-icon { border-color: var(--red);    color: var(--red); }
+.game-card:nth-child(3) .card-icon { border-color: var(--neon-p); color: var(--neon-p); }
+
+.card-info { width: 100%; text-align: center; }
+.card-name {
+  font-size: clamp(16px, 5vw, 22px); font-weight: 900;
+  letter-spacing: 1px; line-height: 1.2; margin-bottom: 4px;
+}
+.game-card:nth-child(1) .card-name { color: var(--neon-b); text-shadow: 0 0 10px var(--neon-b); }
+.game-card:nth-child(2) .card-name { color: var(--red);    text-shadow: 0 0 10px var(--red); }
+.game-card:nth-child(3) .card-name { color: var(--neon-p); text-shadow: 0 0 10px var(--neon-p); }
+
+.card-desc {
+  font-size: 10px; color: var(--dim); letter-spacing: 1px;
+  font-family: Arial, sans-serif; font-weight: normal;
+  margin-bottom: 12px;
+}
+.card-jp {
+  font-size: 11px; color: #ffdd00; letter-spacing: 1px;
+  margin-bottom: 14px; opacity: .9;
+}
+.play-btn {
+  width: 100%; max-width: 260px; padding: 14px 0;
+  border-radius: 12px; border: none;
+  font-size: 14px; font-weight: 900; letter-spacing: 3px;
+  text-transform: uppercase; cursor: pointer;
+  transition: transform .1s, box-shadow .1s;
+  text-decoration: none; display: block; text-align: center;
+  font-family: 'Arial Black', Arial, sans-serif;
+}
+.play-btn:active { transform: scale(.96); }
+.game-card:nth-child(1) .play-btn {
+  background: linear-gradient(135deg,#003a6a,#0066cc);
+  color: #fff; box-shadow: 0 4px 20px rgba(0,136,255,.5);
+  border: 1.5px solid var(--neon-b);
+}
+.game-card:nth-child(2) .play-btn {
+  background: linear-gradient(135deg,#4a0000,#cc2200);
+  color: #fff; box-shadow: 0 4px 20px rgba(255,51,0,.5);
+  border: 1.5px solid var(--red);
+}
+.game-card:nth-child(3) .play-btn {
+  background: linear-gradient(135deg,#3a006a,#8800cc);
+  color: #fff; box-shadow: 0 4px 20px rgba(204,0,255,.5);
+  border: 1.5px solid var(--neon-p);
+}
+
+/* ── DOTS ── */
+#dots {
+  display: flex; justify-content: center; gap: 8px;
+  padding: 10px 0 14px; z-index: 2; flex-shrink: 0;
+}
+.dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--dim); transition: background .2s, transform .2s;
+}
+.dot.active { background: var(--gold); transform: scale(1.4); }
+
+/* ── FOOTER ── */
+#footer {
+  z-index: 2; flex-shrink: 0; text-align: center;
+  padding: 4px 0 8px;
+  font-size: 8px; color: var(--dim); letter-spacing: 2px;
+}
+</style>
+</head>
+<body>
+<div style="display:flex;flex-direction:column;height:100%">
+
+  <div id="hdr">
+    <div id="hdr-marquee">&#9733; Welcome to The Turrelle Sisters Gold Coins Casino &#9733;</div>
+    <div id="casino-name">THE TURRELLE SISTERS<br>GOLD COINS CASINO</div>
+    <div id="casino-sub">Stray-Pup LLC &bull; Est. 2025</div>
+  </div>
+
+  <div id="prog-banner">
+    <div>
+      <div id="prog-lbl">&#9733; SHARED PROGRESSIVE JACKPOT &#9733;</div>
+      <div id="prog-val">$500.00</div>
+    </div>
+    <div id="prog-tag">FEEDS ALL<br>3 GAMES</div>
+  </div>
+
+  <div id="carousel-wrap">
+    <div id="carousel-hint">&#8592; SWIPE TO BROWSE GAMES &#8594;</div>
+    <div id="carousel">
+
+      <!-- GAME 1: StrayPups $1 -->
+      <div class="game-card">
+        <div class="card-glow"></div>
+        <div class="card-badge d1">$1 DENOM</div>
+        <div class="card-art">
+          <div class="card-icon">&#128054;</div>
+        </div>
+        <div class="card-info">
+          <div class="card-name">STRAYPUPS<br>BIG MUNNY</div>
+          <div class="card-desc">3-Reel &bull; 1 Payline &bull; Class II Bingo &bull; $1&ndash;$3 Bet</div>
+          <div class="card-jp">&#9733; Progressive Jackpot: <span class="prog-inline">$500.00</span></div>
+          <a class="play-btn" href="STRAYPUPS_1D_URL/index.html" id="link-sp1">PLAY NOW</a>
+        </div>
+      </div>
+
+      <!-- GAME 2: StrayPups $5 -->
+      <div class="game-card">
+        <div class="card-glow"></div>
+        <div class="card-badge d5">$5 DENOM</div>
+        <div class="card-art">
+          <div class="card-icon">&#128054;</div>
+        </div>
+        <div class="card-info">
+          <div class="card-name">STRAYPUPS<br>BIG MUNNY</div>
+          <div class="card-desc">3-Reel &bull; 1 Payline &bull; Class II Bingo &bull; $5&ndash;$15 Bet</div>
+          <div class="card-jp">&#9733; Progressive Jackpot: <span class="prog-inline">$500.00</span></div>
+          <a class="play-btn" href="STRAYPUPS_5D_URL/index.html" id="link-sp5">PLAY NOW</a>
+        </div>
+      </div>
+
+      <!-- GAME 3: Turrelle Sisters -->
+      <div class="game-card">
+        <div class="card-glow"></div>
+        <div class="card-badge sis">SISTERS</div>
+        <div class="card-art">
+          <div class="card-icon">&#10084;</div>
+        </div>
+        <div class="card-info">
+          <div class="card-name">THE TURRELLE<br>SISTERS</div>
+          <div class="card-desc">5-Reel &bull; 20 Paylines &bull; MINI/MINOR/MAJOR/GRAND JP</div>
+          <div class="card-jp">&#9733; Grand Jackpot: <span id="grand-val">$5,000.00</span></div>
+          <a class="play-btn" href="TURRELLE_URL/index.html" id="link-ts">PLAY NOW</a>
+        </div>
+      </div>
+
+    </div><!-- end carousel -->
+  </div><!-- end carousel-wrap -->
+
+  <div id="dots">
+    <div class="dot active" id="dot-0"></div>
+    <div class="dot"        id="dot-1"></div>
+    <div class="dot"        id="dot-2"></div>
+  </div>
+
+  <div id="footer">STRAY-PUP LLC &bull; THE TURRELLE SISTERS LLC &bull; FOR TESTING ONLY</div>
+
+</div><!-- end flex wrapper -->
+
+<script>
+/* ── SUPABASE CONFIG (same as games) ── */
+var SUPABASE_URL      = 'https://gdmmoeggkqsvqnqyrubx.supabase.co';
+var SUPABASE_ANON_KEY = 'sb_publishable_NGsKBAUUsVUvD5XKTblIdw_aBDPldSd';
+
+/* ── GAME URLs — replace with your actual GitHub Pages URLs ─────────────
+   Example: 'https://apashchenko918.github.io/straypups-1d'
+   ────────────────────────────────────────────────────────────────────── */
+document.getElementById('link-sp1').href = 'STRAYPUPS_1D_URL/index.html';
+document.getElementById('link-sp5').href = 'STRAYPUPS_5D_URL/index.html';
+document.getElementById('link-ts').href  = 'TURRELLE_URL/index.html';
+
+/* ── Carousel dot tracking ── */
+var carousel = document.getElementById('carousel');
+carousel.addEventListener('scroll', function() {
+  var idx = Math.round(carousel.scrollLeft / carousel.offsetWidth);
+  for (var i = 0; i < 3; i++) {
+    document.getElementById('dot-' + i).classList.toggle('active', i === idx);
+  }
+}, { passive: true });
+
+/* ── Progressive meter — connect to Supabase ── */
+function updateProgDisplay(val) {
+  var display = '$' + Number(val).toFixed(2);
+  document.getElementById('prog-val').textContent  = display;
+  var els = document.querySelectorAll('.prog-inline');
+  for (var i = 0; i < els.length; i++) els[i].textContent = display;
+}
+
+function loadProgressive() {
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+  s.onload = function() {
+    try {
+      var client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      // Fetch current value
+      client.from('progressive').select('value').eq('id', 1).single().then(function(res) {
+        if (!res.error && res.data) updateProgDisplay(res.data.value);
+      });
+      // Subscribe to live changes
+      client.channel('lobby-prog')
+        .on('postgres_changes', { event:'UPDATE', schema:'public', table:'progressive', filter:'id=eq.1' }, function(p) {
+          if (p.new && p.new.value != null) updateProgDisplay(p.new.value);
+        })
+        .subscribe();
+    } catch(e) {
+      console.warn('Lobby Supabase error', e);
+    }
+  };
+  document.head.appendChild(s);
+}
+
+// Register service worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js').catch(function(){});
+}
+
+loadProgressive();
+</script>
+</body>
+</html>
