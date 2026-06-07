@@ -87,15 +87,6 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
   mask-image:linear-gradient(to right,transparent 0%,black 25%,black 85%,transparent 100%);
 }
 #greeter video{height:100%;width:auto;object-fit:contain;object-position:center bottom;display:block;}
-
-
-/* Launch game — use location.href to stay within PWA shell (hides URL bar) */
-function launchGame(url) {
-  /* Store lobby URL so games can return */
-  try { sessionStorage.setItem('__lobby_url', window.location.href); } catch(e) {}
-  window.location.href = url;
-}
-
 /* ── CAROUSEL ── */
 #carousel-section{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative;}
 #carousel-hint{text-align:center;font-size:8px;color:var(--dim);letter-spacing:2px;
@@ -467,109 +458,7 @@ function launchGame(url) {
   </button>
 </div>
 
-<script>
-/* ── SUPABASE CONFIG ── */
-var SUPABASE_URL      = 'https://gdmmoeggkqsvqnqyrubx.supabase.co';
-var SUPABASE_ANON_KEY = 'sb_publishable_NGsKBAUUsVUvD5XKTblIdw_aBDPldSd';
 
-
-/* Launch game — use location.href to stay within PWA shell (hides URL bar) */
-function launchGame(url) {
-  /* Store lobby URL so games can return */
-  try { sessionStorage.setItem('__lobby_url', window.location.href); } catch(e) {}
-  window.location.href = url;
-}
-
-/* ── CAROUSEL ── */
-var carousel = document.getElementById('carousel');
-var _lastIdx = 0;
-carousel.addEventListener('scroll', function() {
-  var idx = Math.round(carousel.scrollLeft / carousel.offsetWidth);
-  if (idx !== _lastIdx) {
-    _lastIdx = idx;
-    for (var i = 0; i < 3; i++) {
-      document.getElementById('dot-' + i).classList.toggle('active', i === idx);
-    }
-  }
-}, { passive: true });
-
-/* Fade out hint after first swipe */
-carousel.addEventListener('scroll', function fadeHint() {
-  document.getElementById('carousel-hint').style.opacity = '0';
-  carousel.removeEventListener('scroll', fadeHint);
-}, { passive: true, once: true });
-
-/* ── PROGRESSIVE LIVE METER ── */
-function updateProgDisplay(val) {
-  var disp = '$' + Number(val).toFixed(2);
-  document.getElementById('prog-val').textContent = disp;
-  var inlines = document.querySelectorAll('.prog-inline');
-  for (var i = 0; i < inlines.length; i++) inlines[i].textContent = disp;
-}
-
-function loadSupabase() {
-  var s = document.createElement('script');
-  s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
-  s.onload = function() {
-    try {
-      var client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-      /* Fetch current value */
-      client.from('progressive').select('value,seed').eq('id', 1).single().then(function(res) {
-        if (!res.error && res.data) {
-          updateProgDisplay(res.data.value);
-          document.getElementById('prog-seed').textContent = 'Seed: $' + Number(res.data.seed).toFixed(2);
-        }
-      });
-      /* Subscribe to live changes */
-      client.channel('lobby-prog')
-        .on('postgres_changes', { event:'UPDATE', schema:'public', table:'progressive', filter:'id=eq.1' },
-          function(p) {
-            if (p.new && p.new.value != null) updateProgDisplay(p.new.value);
-          })
-        .subscribe();
-      /* Subscribe to jackpot hits — show attitude check on lobby */
-      var _lobbyVids = ['assets/videos/josie_dance.mp4','assets/videos/sasha_dance.mp4','assets/videos/sasha_alt.mp4'];
-      var _lobbyVI = 0;
-      client.channel('lobby-hits')
-        .on('postgres_changes', { event:'INSERT', schema:'public', table:'progressive_hits' },
-          function(p) {
-            if (!p.new) return;
-            var amt = Number(p.new.amount || 0);
-            var amtEl = document.getElementById('lac-amt');
-            if (amtEl) amtEl.textContent = '$' + amt.toFixed(2);
-            var vid = document.getElementById('lac-vid');
-            if (vid) {
-              vid.src = _lobbyVids[Math.floor(Math.random() * _lobbyVids.length)];
-              vid.load(); vid.play();
-            }
-            var el = document.getElementById('lobby-ac');
-            if (el) el.classList.add('show');
-          })
-        .subscribe();
-    } catch(e) { console.warn('Lobby Supabase error', e); }
-  };
-  document.head.appendChild(s);
-}
-
-/* ── SERVICE WORKER ── */
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('service-worker.js').catch(function(){});
-}
-
-/* ── GREETER VIDEO — alternate between sasha_dance and sasha_alt ── */
-var greeterVid = document.getElementById('greeter-vid');
-var greeterVideos = ['assets/videos/sasha_dance.mp4', 'assets/videos/sasha_alt.mp4'];
-var greeterIdx = 0;
-if (greeterVid) {
-  greeterVid.addEventListener('ended', function() {
-    greeterIdx = (greeterIdx + 1) % greeterVideos.length;
-    greeterVid.src = greeterVideos[greeterIdx];
-    greeterVid.play();
-  });
-}
-
-loadSupabase();
-</script>
 
 <!-- LOBBY ATTITUDE CHECK OVERLAY -->
 <div id="lobby-ac">
@@ -613,70 +502,7 @@ loadSupabase();
   </div>
 </div>
 
-<script>
-(function(){
-  var _deferredPrompt = null;
-  var DISMISS_KEY = 'install_dismissed_v1';
 
-  /* Check if already installed as PWA */
-  function _isInstalled() {
-    return window.matchMedia('(display-mode: standalone)').matches ||
-           window.navigator.standalone === true;
-  }
-
-  /* Detect iOS */
-  function _isIOS() {
-    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-  }
-
-  function dismissInstall() {
-    document.getElementById('install-prompt').classList.remove('show');
-    try { sessionStorage.setItem(DISMISS_KEY, '1'); } catch(e) {}
-  }
-  window.dismissInstall = dismissInstall;
-
-  /* Android/Chrome: capture install event */
-  window.addEventListener('beforeinstallprompt', function(e) {
-    e.preventDefault();
-    _deferredPrompt = e;
-    showInstallPrompt('Add to Home Screen — play offline anytime!');
-  });
-
-  /* Install button click */
-  document.getElementById('install-btn').addEventListener('click', function() {
-    var overlay = document.getElementById('ios-install-overlay');
-    if (_isIOS()) {
-      /* iOS — show manual instructions */
-      document.getElementById('install-prompt').classList.remove('show');
-      overlay.classList.add('show');
-    } else if (_deferredPrompt) {
-      /* Android/Chrome — native prompt */
-      _deferredPrompt.prompt();
-      _deferredPrompt.userChoice.then(function(result) {
-        if (result.outcome === 'accepted') {
-          document.getElementById('install-prompt').classList.remove('show');
-        }
-        _deferredPrompt = null;
-      });
-    }
-  });
-
-  function showInstallPrompt(subText) {
-    if (_isInstalled()) return;
-    try { if (sessionStorage.getItem(DISMISS_KEY)) return; } catch(e) {}
-    var sub = document.getElementById('install-sub');
-    if (sub && subText) sub.textContent = subText;
-    setTimeout(function() {
-      document.getElementById('install-prompt').classList.add('show');
-    }, 2000);
-  }
-
-  /* Show on load for iOS (no beforeinstallprompt on iOS) */
-  if (_isIOS() && !_isInstalled()) {
-    showInstallPrompt('Tap Share \u2197 then \"Add to Home Screen\"');
-  }
-}());
-</script>
 
 <div style="position:fixed;bottom:2px;left:0;right:0;text-align:center;
 font-size:7px;color:rgba(255,215,0,0.18);letter-spacing:2px;pointer-events:none;
@@ -692,54 +518,211 @@ GOLD COINS CASINO &bull; v2.4</div>
   </div>
   <div id="op-msg-close" onclick="dismissOpMessage()">&#10005;</div>
 </div>
+
+
+
+
+
+<!-- PWA INSTALL PROMPT SCRIPT -->
+
+
+<!-- OPERATOR MESSAGE SCRIPT -->
+
+
+<!-- MAIN LOBBY SCRIPT -->
+
+
+
 <script>
+/* Gold Coins Casino Lobby — Single Script Block v2.9 */
+var SUPABASE_URL      = 'https://gdmmoeggkqsvqnqyrubx.supabase.co';
+var SUPABASE_ANON_KEY = 'sb_publishable_NGsKBAUUsVUvD5XKTblIdw_aBDPldSd';
+
+/* ── Launch game ── */
+function launchGame(url) {
+  try { sessionStorage.setItem('__lobby_url', window.location.href); } catch(e) {}
+  window.location.href = url;
+}
+
+/* ── Install prompt ── */
 (function(){
-  var _msgQueue = [];
-  var _msgShowing = false;
-  var ICONS = { general:'&#128226;', jackpot:'&#127922;', event:'&#9889;', bonus:'&#127873;' };
-
-  function dismissOpMessage() {
-    var el = document.getElementById('op-message-banner');
-    if (el) el.classList.remove('show');
-    _msgShowing = false;
-    /* Show next queued message after short delay */
-    if (_msgQueue.length > 0) {
-      setTimeout(showNextMessage, 800);
-    }
-  }
-  window.dismissOpMessage = dismissOpMessage;
-
-  function showNextMessage() {
-    if (_msgQueue.length === 0) return;
-    var msg = _msgQueue.shift();
-    _msgShowing = true;
-    var el   = document.getElementById('op-message-banner');
-    var icon = document.getElementById('op-msg-icon');
-    var text = document.getElementById('op-msg-text');
-    if (icon) icon.innerHTML = ICONS[msg.type] || ICONS.general;
-    if (text) text.textContent = msg.message;
-    if (el) el.classList.add('show');
-    /* Auto-dismiss after 12 seconds */
-    setTimeout(function() {
-      if (_msgShowing) dismissOpMessage();
-    }, 12000);
-  }
-
-  function queueMessage(msg) {
-    _msgQueue.push(msg);
-    if (!_msgShowing) showNextMessage();
-  }
-
-  /* Hook into Progressive module once it's ready */
-  window.addEventListener('load', function() {
-    setTimeout(function() {
-      if (typeof Progressive !== 'undefined' && Progressive.onMessage) {
-        Progressive.onMessage(queueMessage);
-      }
-    }, 500);
+  var _dp=null,DKEY='install_dismissed_v1';
+  function installed(){return window.matchMedia('(display-mode:standalone)').matches||navigator.standalone===true;}
+  function isIOS(){return /iPad|iPhone|iPod/.test(navigator.userAgent)&&!window.MSStream;}
+  window.dismissInstall=function(){
+    var el=document.getElementById('install-prompt');
+    if(el)el.classList.remove('show');
+    try{sessionStorage.setItem(DKEY,'1');}catch(e){}
+  };
+  window.addEventListener('beforeinstallprompt',function(e){
+    e.preventDefault();_dp=e;
+    if(!installed()){try{if(!sessionStorage.getItem(DKEY))setTimeout(function(){
+      var el=document.getElementById('install-prompt');if(el)el.classList.add('show');
+    },2000);}catch(e){}}
   });
+  var ib=document.getElementById('install-btn');
+  if(ib)ib.addEventListener('click',function(){
+    if(isIOS()){
+      var ip=document.getElementById('install-prompt');if(ip)ip.classList.remove('show');
+      var io=document.getElementById('ios-install-overlay');if(io)io.classList.add('show');
+    }else if(_dp){_dp.prompt();_dp.userChoice.then(function(r){
+      if(r.outcome==='accepted'){var el=document.getElementById('install-prompt');if(el)el.classList.remove('show');}
+      _dp=null;
+    });}
+  });
+  if(isIOS()&&!installed()){try{if(!sessionStorage.getItem(DKEY))setTimeout(function(){
+    var el=document.getElementById('install-prompt');if(el)el.classList.add('show');
+  },2000);}catch(e){}}
 }());
+
+/* ── Operator messages ── */
+(function(){
+  var _mq=[],_ms=false;
+  var ICONS={general:'&#128226;',jackpot:'&#127922;',event:'&#9889;',bonus:'&#127873;'};
+  window.dismissOpMessage=function(){
+    var el=document.getElementById('op-message-banner');if(el)el.classList.remove('show');
+    _ms=false;if(_mq.length>0)setTimeout(showNext,800);
+  };
+  function showNext(){
+    if(!_mq.length)return;var msg=_mq.shift();_ms=true;
+    var el=document.getElementById('op-message-banner');
+    var ic=document.getElementById('op-msg-icon');
+    var tx=document.getElementById('op-msg-text');
+    if(ic)ic.innerHTML=ICONS[msg.type]||ICONS.general;
+    if(tx)tx.textContent=msg.message;
+    if(el)el.classList.add('show');
+    setTimeout(function(){if(_ms)window.dismissOpMessage();},12000);
+  }
+  window._queueOpMessage=function(msg){_mq.push(msg);if(!_ms)showNext();};
+}());
+
+/* ── Carousel dots ── */
+var _car=document.getElementById('carousel');
+if(_car)_car.addEventListener('scroll',function(){
+  var idx=Math.round(_car.scrollLeft/_car.offsetWidth);
+  for(var i=0;i<3;i++){var d=document.getElementById('dot-'+i);if(d)d.classList.toggle('active',i===idx);}
+},{passive:true});
+
+/* ── Progressive display ── */
+function updateProgDisplay(val){
+  var disp='$'+Number(val).toFixed(2);
+  var pv=document.getElementById('prog-val');if(pv)pv.textContent=disp;
+  var els=document.querySelectorAll('.prog-inline');for(var i=0;i<els.length;i++)els[i].textContent=disp;
+}
+
+/* ── Load Supabase ── */
+function loadSupabase(){
+  var s=document.createElement('script');
+  s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+  s.onload=function(){
+    try{
+      var c=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+      c.from('progressive').select('value,seed').eq('id',1).single().then(function(r){
+        if(!r.error&&r.data){updateProgDisplay(r.data.value);
+          var ps=document.getElementById('prog-seed');if(ps)ps.textContent='Seed: $'+Number(r.data.seed).toFixed(2);}
+      });
+      c.channel('lp').on('postgres_changes',{event:'UPDATE',schema:'public',table:'progressive',filter:'id=eq.1'},
+        function(p){if(p.new&&p.new.value!=null)updateProgDisplay(p.new.value);}).subscribe();
+      try{c.channel('lm').on('postgres_changes',{event:'INSERT',schema:'public',table:'broadcast_messages'},
+        function(p){if(p.new&&window._queueOpMessage)window._queueOpMessage(p.new);}).subscribe();}catch(e){}
+      var _v=['assets/videos/josie_dance.mp4','assets/videos/sasha_dance.mp4','assets/videos/sasha_alt.mp4'];
+      c.channel('lh').on('postgres_changes',{event:'INSERT',schema:'public',table:'progressive_hits'},
+        function(p){if(!p.new)return;
+          var ae=document.getElementById('lac-amt');if(ae)ae.textContent='$'+Number(p.new.amount||0).toFixed(2);
+          var vd=document.getElementById('lac-vid');if(vd){vd.src=_v[Math.floor(Math.random()*_v.length)];vd.load();vd.play();}
+          var el=document.getElementById('lobby-ac');if(el)el.classList.add('show');
+        }).subscribe();
+    }catch(e){console.warn('Lobby error',e);}
+  };
+  document.head.appendChild(s);
+}
+
+/* ── Greeter video ── */
+var _gv=document.getElementById('greeter-vid');
+if(_gv){var _gvs=['assets/videos/sasha_dance.mp4','assets/videos/sasha_alt.mp4'],_gi=0;
+  _gv.addEventListener('ended',function(){_gi=(_gi+1)%_gvs.length;_gv.src=_gvs[_gi];_gv.play();});}
+
+if('serviceWorker' in navigator)navigator.serviceWorker.register('service-worker.js').catch(function(){});
+loadSupabase();
 </script>
+
+</body>
+</html>
+
+<!-- LOBBY ATTITUDE CHECK OVERLAY -->
+<div id="lobby-ac">
+  <video id="lac-vid" autoplay loop muted playsinline></video>
+  <div id="lac-title">ATTITUDE CHECK!!!</div>
+  <div style="font-size:13px;color:#ffaa00;letter-spacing:1px;text-align:center;margin:4px 0">Someone Just Won The Progressive Jackpot!</div>
+  <div id="lac-amt">$0.00</div>
+  <div style="font-size:11px;color:#886699;text-align:center;font-family:Arial,sans-serif;font-weight:normal;line-height:1.6">Keep playing for your chance!!!</div>
+  <button id="lac-dismiss" onclick="document.getElementById('lobby-ac').classList.remove('show')">GOT IT &#128074;</button>
+</div>
+
+
+<!-- PWA INSTALL PROMPT -->
+<div id="install-prompt">
+  <div id="install-icon">&#127922;</div>
+  <div id="install-text">
+    <div id="install-title">Install Gold Coins Casino</div>
+    <div id="install-sub">Add to your home screen for the best experience</div>
+  </div>
+  <button id="install-btn">INSTALL NOW</button>
+  <div id="install-close" onclick="dismissInstall()">&#10005;</div>
+</div>
+
+<!-- iOS INSTALL INSTRUCTIONS -->
+<div id="ios-install-overlay">
+  <div id="ios-install-card">
+    <h3>&#9733; INSTALL GOLD COINS CASINO &#9733;</h3>
+    <div class="ios-step">
+      <div class="ios-step-num">1</div>
+      <div class="ios-step-text">Tap the <strong>Share button</strong> &#x2197; at the bottom of Safari</div>
+    </div>
+    <div class="ios-step">
+      <div class="ios-step-num">2</div>
+      <div class="ios-step-text">Scroll down and tap <strong>"Add to Home Screen"</strong></div>
+    </div>
+    <div class="ios-step">
+      <div class="ios-step-num">3</div>
+      <div class="ios-step-text">Tap <strong>"Add"</strong> in the top right — done! &#127881;</div>
+    </div>
+    <button id="ios-install-close" onclick="document.getElementById('ios-install-overlay').classList.remove('show')">GOT IT</button>
+  </div>
+</div>
+
+
+
+<div style="position:fixed;bottom:2px;left:0;right:0;text-align:center;
+font-size:7px;color:rgba(255,215,0,0.18);letter-spacing:2px;pointer-events:none;
+z-index:1;font-family:Arial,sans-serif;font-weight:normal">
+GOLD COINS CASINO &bull; v2.4</div>
+
+<!-- OPERATOR BROADCAST MESSAGE BANNER -->
+<div id="op-message-banner">
+  <div id="op-msg-icon">&#128226;</div>
+  <div id="op-msg-body">
+    <div id="op-msg-from">&#9733; MESSAGE FROM GOLD COINS CASINO</div>
+    <div id="op-msg-text"></div>
+  </div>
+  <div id="op-msg-close" onclick="dismissOpMessage()">&#10005;</div>
+</div>
+
+
+
+
+
+<!-- PWA INSTALL PROMPT SCRIPT -->
+
+
+<!-- OPERATOR MESSAGE SCRIPT -->
+
+
+<!-- MAIN LOBBY SCRIPT -->
+
+
+
+
 
 </body>
 </html>
