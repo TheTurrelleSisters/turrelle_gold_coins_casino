@@ -522,11 +522,14 @@ GOLD COINS CASINO &bull; v2.4</div>
 
 
 
-
 <!-- PWA INSTALL PROMPT SCRIPT -->
 
 
 <!-- OPERATOR MESSAGE SCRIPT -->
+
+
+<!-- BROADCAST INIT SCRIPT -->
+<script src="broadcast-init.js?v=1.0"></script>
 
 
 <!-- MAIN LOBBY SCRIPT -->
@@ -645,84 +648,6 @@ if(_gv){var _gvs=['assets/videos/sasha_dance.mp4','assets/videos/sasha_alt.mp4']
 if('serviceWorker' in navigator)navigator.serviceWorker.register('service-worker.js').catch(function(){});
 loadSupabase();
 </script>
-
-</body>
-</html>
-
-<!-- LOBBY ATTITUDE CHECK OVERLAY -->
-<div id="lobby-ac">
-  <video id="lac-vid" autoplay loop muted playsinline></video>
-  <div id="lac-title">ATTITUDE CHECK!!!</div>
-  <div style="font-size:13px;color:#ffaa00;letter-spacing:1px;text-align:center;margin:4px 0">Someone Just Won The Progressive Jackpot!</div>
-  <div id="lac-amt">$0.00</div>
-  <div style="font-size:11px;color:#886699;text-align:center;font-family:Arial,sans-serif;font-weight:normal;line-height:1.6">Keep playing for your chance!!!</div>
-  <button id="lac-dismiss" onclick="document.getElementById('lobby-ac').classList.remove('show')">GOT IT &#128074;</button>
-</div>
-
-
-<!-- PWA INSTALL PROMPT -->
-<div id="install-prompt">
-  <div id="install-icon">&#127922;</div>
-  <div id="install-text">
-    <div id="install-title">Install Gold Coins Casino</div>
-    <div id="install-sub">Add to your home screen for the best experience</div>
-  </div>
-  <button id="install-btn">INSTALL NOW</button>
-  <div id="install-close" onclick="dismissInstall()">&#10005;</div>
-</div>
-
-<!-- iOS INSTALL INSTRUCTIONS -->
-<div id="ios-install-overlay">
-  <div id="ios-install-card">
-    <h3>&#9733; INSTALL GOLD COINS CASINO &#9733;</h3>
-    <div class="ios-step">
-      <div class="ios-step-num">1</div>
-      <div class="ios-step-text">Tap the <strong>Share button</strong> &#x2197; at the bottom of Safari</div>
-    </div>
-    <div class="ios-step">
-      <div class="ios-step-num">2</div>
-      <div class="ios-step-text">Scroll down and tap <strong>"Add to Home Screen"</strong></div>
-    </div>
-    <div class="ios-step">
-      <div class="ios-step-num">3</div>
-      <div class="ios-step-text">Tap <strong>"Add"</strong> in the top right — done! &#127881;</div>
-    </div>
-    <button id="ios-install-close" onclick="document.getElementById('ios-install-overlay').classList.remove('show')">GOT IT</button>
-  </div>
-</div>
-
-
-
-<div style="position:fixed;bottom:2px;left:0;right:0;text-align:center;
-font-size:7px;color:rgba(255,215,0,0.18);letter-spacing:2px;pointer-events:none;
-z-index:1;font-family:Arial,sans-serif;font-weight:normal">
-GOLD COINS CASINO &bull; v2.4</div>
-
-<!-- OPERATOR BROADCAST MESSAGE BANNER -->
-<div id="op-message-banner">
-  <div id="op-msg-icon">&#128226;</div>
-  <div id="op-msg-body">
-    <div id="op-msg-from">&#9733; MESSAGE FROM GOLD COINS CASINO</div>
-    <div id="op-msg-text"></div>
-  </div>
-  <div id="op-msg-close" onclick="dismissOpMessage()">&#10005;</div>
-</div>
-
-
-
-
-
-<!-- PWA INSTALL PROMPT SCRIPT -->
-
-
-<!-- OPERATOR MESSAGE SCRIPT -->
-
-
-<!-- MAIN LOBBY SCRIPT -->
-
-
-
-
 
 </body>
 </html>
