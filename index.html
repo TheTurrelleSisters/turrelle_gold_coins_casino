@@ -32,6 +32,7 @@
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none;}
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Arial Black',Arial,sans-serif;overflow:hidden;}
 #wrap{max-width:500px;margin:0 auto;height:100%;display:flex;flex-direction:column;position:relative;background:var(--bg);}
+@media(min-width:600px){html,body{overflow:auto;height:auto;min-height:100%;}#wrap{height:auto;min-height:100vh;}#carousel-section{min-height:420px;}}
 
 /* ── SCANLINES ── */
 body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
@@ -685,8 +686,10 @@ var SUPABASE_ANON_KEY = 'sb_publishable_NGsKBAUUsVUvD5XKTblIdw_aBDPldSd';
 
 /* ── Launch game ── */
 function launchGame(url) {
-  try { sessionStorage.setItem('__lobby_url', window.location.href); } catch(e) {}
-  /* Cache bust + nickname param */
+  try {
+    sessionStorage.setItem('__lobby_url', window.location.href);
+    sessionStorage.setItem('__from_game', '1'); /* flag: returning from game */
+  } catch(e) {}
   var sep = url.indexOf('?') === -1 ? '?' : '&';
   var dest = url + sep + 'v=' + Date.now();
   var nick = window._playerNickname || (function(){
@@ -906,13 +909,26 @@ loadSupabase();
     }
   };
 
-  /* On load — check if returning player */
+  /* On load — check if returning player or coming back from a game */
   (function init() {
     var ageConfirmed = getAgeConfirmed();
-    var savedNick = getSavedNick();
+    var savedNick    = getSavedNick();
+
+    /* Returning from game via back button — skip splash entirely */
+    var fromGame = false;
+    try { fromGame = sessionStorage.getItem('__from_game') === '1'; } catch(e) {}
+    if (fromGame) {
+      try { sessionStorage.removeItem('__from_game'); } catch(e) {}
+      if (savedNick) {
+        showBadge(savedNick);
+        window._playerNickname = savedNick;
+        dismissSplash(); /* skip instantly */
+        return;
+      }
+    }
 
     if (ageConfirmed && savedNick) {
-      /* Returning player — skip straight past age gate, just show nickname input briefly */
+      /* Returning player — skip straight past age gate */
       showBadge(savedNick);
       window._playerNickname = savedNick;
       var nickSection = document.getElementById('ls-nickname-section');
@@ -925,13 +941,11 @@ loadSupabase();
     }
 
     if (ageConfirmed && !savedNick) {
-      /* Age confirmed but no nick yet — show nickname field immediately */
       var nickSection2 = document.getElementById('ls-nickname-section');
-      var btnEnter2 = document.getElementById('ls-btn-enter');
+      var btnEnter2    = document.getElementById('ls-btn-enter');
       if (nickSection2) nickSection2.classList.add('show');
-      if (btnEnter2) btnEnter2.textContent = 'ENTER CASINO';
+      if (btnEnter2)    btnEnter2.textContent = 'ENTER CASINO';
     }
-    /* Else: first visit — show full age gate */
   }());
 
   /* Enter key on nickname input */
