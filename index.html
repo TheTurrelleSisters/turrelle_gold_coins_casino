@@ -57,14 +57,14 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
   background:linear-gradient(135deg,#1a0000,#3a0010,#250020,#1a0000);
   border-top:1px solid #ff440055;border-bottom:2px solid #ff4400;
   padding:6px 14px 5px;
-  display:flex;align-items:center;justify-content:space-between;
+  display:flex;align-items:center;justify-content:center;
   position:relative;overflow:hidden;
 }
 #prog-banner::before{content:'';position:absolute;inset:0;
   background:radial-gradient(ellipse at center,rgba(255,50,0,.08) 0%,transparent 70%);
   animation:prog-glow 3s ease-in-out infinite;pointer-events:none;}
 @keyframes prog-glow{0%,100%{opacity:.5}50%{opacity:1}}
-#prog-left{display:flex;flex-direction:column;}
+#prog-left{display:flex;flex-direction:column;align-items:center;text-align:center;}
 #prog-lbl{font-size:7px;letter-spacing:3px;color:#ff8844;text-transform:uppercase;
   text-shadow:0 0 6px #ff4400;}
 #prog-val{font-size:clamp(22px,6vw,30px);font-weight:900;color:#ffdd00;
@@ -344,13 +344,157 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
   font-family: Arial, sans-serif;
 }
 
+
+/* ── LOBBY SPLASH / AGE GATE + NICKNAME ── */
+#lobby-splash {
+  position: fixed; inset: 0; z-index: 9999;
+  background: radial-gradient(ellipse at center top, #1a0035 0%, #08000f 60%, #000005 100%);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 24px 20px; text-align: center;
+  transition: opacity 0.5s; overflow-y: auto;
+}
+#lobby-splash.fade-out { opacity: 0; pointer-events: none; }
+#lobby-splash.hidden { display: none; }
+
+.ls-paws { font-size: 32px; margin-bottom: 8px; letter-spacing: 4px; }
+.ls-title {
+  font-family: 'Arial Black', Arial, sans-serif;
+  font-size: clamp(22px, 7vw, 36px); font-weight: 900;
+  color: #ffd700; letter-spacing: 3px; line-height: 1.15;
+  text-shadow: 0 0 20px #ff6600, 0 0 40px #ff3300;
+  margin-bottom: 6px;
+}
+.ls-subtitle {
+  font-size: 11px; color: rgba(255,215,0,0.5);
+  letter-spacing: 3px; margin-bottom: 28px;
+}
+.ls-card {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,215,0,0.2);
+  border-radius: 10px; padding: 16px 20px;
+  width: 100%; max-width: 340px; margin-bottom: 20px;
+}
+.ls-age-text {
+  font-size: 15px; font-weight: 700; color: #fff;
+  line-height: 1.4; margin-bottom: 4px;
+}
+.ls-age-text span { color: #ff8c00; }
+.ls-age-sub {
+  font-size: 10px; color: rgba(255,255,255,0.4);
+  letter-spacing: 1px; margin-bottom: 0;
+}
+
+/* Nickname section — hidden until age confirmed */
+#ls-nickname-section {
+  width: 100%; max-width: 340px;
+  display: none; flex-direction: column; gap: 10px;
+  margin-bottom: 20px;
+}
+#ls-nickname-section.show { display: flex; }
+.ls-nick-label {
+  font-size: 11px; color: rgba(255,215,0,0.7);
+  letter-spacing: 2px; text-align: left; margin-bottom: 2px;
+}
+#ls-nick-input {
+  width: 100%; box-sizing: border-box;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,215,0,0.4);
+  border-radius: 8px; padding: 12px 14px;
+  font-size: 16px; color: #fff; font-family: inherit;
+  outline: none; letter-spacing: 1px;
+}
+#ls-nick-input:focus { border-color: #ffd700; background: rgba(255,215,0,0.08); }
+#ls-nick-input::placeholder { color: rgba(255,255,255,0.25); font-size: 13px; }
+#ls-nick-error {
+  font-size: 11px; color: #ff4444; display: none;
+  text-align: left; letter-spacing: 1px;
+}
+
+.ls-btn-enter {
+  width: 100%; max-width: 340px;
+  background: linear-gradient(135deg, #1a7a1a, #0d5c0d);
+  border: 2px solid #22aa22; border-radius: 8px;
+  color: #fff; font-size: 14px; font-weight: 900;
+  letter-spacing: 3px; padding: 16px; cursor: pointer;
+  text-transform: uppercase; margin-bottom: 10px;
+  font-family: inherit;
+  box-shadow: 0 0 20px rgba(0,200,0,0.3);
+  transition: all 0.2s;
+}
+.ls-btn-enter:hover { background: linear-gradient(135deg,#22aa22,#116611); }
+.ls-btn-under {
+  width: 100%; max-width: 340px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.15); border-radius: 8px;
+  color: rgba(255,255,255,0.4); font-size: 12px; font-weight: 700;
+  letter-spacing: 2px; padding: 12px; cursor: pointer;
+  text-transform: uppercase; font-family: inherit;
+  margin-bottom: 20px; transition: all 0.2s;
+}
+.ls-btn-under:hover { background: rgba(255,0,0,0.1); color: rgba(255,100,100,0.7); }
+.ls-disclaimer {
+  font-size: 9px; color: rgba(255,255,255,0.2);
+  letter-spacing: 2px; max-width: 300px; line-height: 1.6;
+}
+#ls-player-badge {
+  position: fixed; top: 8px; right: 10px; z-index: 100;
+  background: rgba(0,0,0,0.6); border: 1px solid rgba(255,215,0,0.3);
+  border-radius: 20px; padding: 4px 10px;
+  font-size: 11px; color: rgba(255,215,0,0.8); letter-spacing: 1px;
+  display: none; align-items: center; gap: 6px; cursor: pointer;
+}
+#ls-player-badge.show { display: flex; }
+#ls-player-badge:hover { border-color: #ffd700; color: #ffd700; }
+
 </style>
 </head>
 <body>
 <div id="wrap">
 
   <!-- BANNER -->
-  <div id="banner">
+  
+<!-- LOBBY SPLASH: AGE GATE + NICKNAME -->
+<div id="lobby-splash">
+  <div class="ls-paws">&#128062;&#128062;</div>
+  <div class="ls-title">THE TURRELLE SISTERS<br>GOLD COINS CASINO</div>
+  <div class="ls-subtitle">ENTERTAINMENT ONLY &bull; NO REAL MONEY GAMBLING</div>
+
+  <!-- Age gate card -->
+  <div class="ls-card" id="ls-age-card">
+    <div class="ls-age-text">You must be <span>18 years or older</span> to play this game.</div>
+  </div>
+  <div class="ls-age-sub" style="margin-bottom:20px;font-size:10px;color:rgba(255,255,255,0.35);letter-spacing:1px;">
+    By entering you confirm that you are 18 or older and agree to our Terms of Use.
+  </div>
+
+  <!-- Nickname section (shown after age confirmed) -->
+  <div id="ls-nickname-section">
+    <div class="ls-nick-label">&#9733; YOUR PLAYER NAME</div>
+    <input id="ls-nick-input" type="text" maxlength="16"
+      placeholder="Enter your nickname..." autocomplete="off" autocorrect="off"
+      spellcheck="false">
+    <div id="ls-nick-error">Please enter a nickname to continue.</div>
+  </div>
+
+  <button class="ls-btn-enter" id="ls-btn-enter" onclick="lsEnter()">
+    I AM 18 OR OLDER &mdash; ENTER
+  </button>
+  <button class="ls-btn-under" onclick="lsUnder()">
+    I AM UNDER 18 &mdash; EXIT
+  </button>
+  <div class="ls-disclaimer">
+    FOR ENTERTAINMENT ONLY &bull; NO REAL MONEY GAMBLING &bull; NO REAL PRIZES
+  </div>
+</div>
+
+<!-- Player badge in corner after login -->
+<div id="ls-player-badge" onclick="lsChangeName()">
+  <span id="ls-badge-name"></span>
+  <span style="font-size:9px;opacity:0.5">&#9998;</span>
+</div>
+
+
+<div id="banner">
     <img src="assets/images/lobby_banner.jpg" alt="The Turrelle Sisters Gold Coins Casino">
     <div id="marquee-wrap">
       <div id="marquee">
@@ -366,10 +510,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
       <div id="prog-lbl">&#9733; Shared Progressive Jackpot &#9733;</div>
       <div id="prog-val">$500.00</div>
     </div>
-    <div id="prog-right">
-      <div id="prog-tag">FEEDS ALL<br>3 GAMES</div>
-      <div id="prog-seed">Seed: $500.00</div>
-    </div>
+
     <!-- Sasha greeter -->
     <div id="greeter">
       <video id="greeter-vid" autoplay loop muted playsinline
@@ -386,13 +527,13 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
       <div class="card">
         <div class="card-top">
           <div style="font-size:9px;color:var(--dim);letter-spacing:1px">STRAYPUPS</div>
-          <div class="card-badge badge-1d">$1 DENOM</div>
+          <div class="card-badge badge-1d">$1</div>
         </div>
         <div class="card-img-wrap">
           <img src="assets/images/straypups_splash.jpg" alt="StrayPups Big Munny">
         </div>
         <div class="card-name">StrayPups<br>Big Munny</div>
-        <div class="card-desc">3-Reel &bull; 1 Payline &bull; Class II Bingo &bull; $1&ndash;$3 Bet</div>
+        <div class="card-desc">3-Reel &bull; 1 Payline &bull; $1&ndash;$3 Bet</div>
         <div class="card-jp">&#9733; Progressive Jackpot: <span class="prog-inline">$500.00</span></div>
         <button class="play-btn" id="btn-sp1"
           onclick="launchGame('https://theturrellesisters.github.io/straypups_big_munny_v5_27_PWA/index.html')">
@@ -404,13 +545,13 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
       <div class="card">
         <div class="card-top">
           <div style="font-size:9px;color:var(--dim);letter-spacing:1px">STRAYPUPS</div>
-          <div class="card-badge badge-5d">$5 DENOM</div>
+          <div class="card-badge badge-5d">$5</div>
         </div>
         <div class="card-img-wrap">
           <img src="assets/images/straypups_splash.jpg" alt="StrayPups Big Munny $5">
         </div>
         <div class="card-name">StrayPups<br>Big Munny</div>
-        <div class="card-desc">3-Reel &bull; 1 Payline &bull; Class II Bingo &bull; $5&ndash;$15 Bet</div>
+        <div class="card-desc">3-Reel &bull; 1 Payline &bull; $5&ndash;$15 Bet</div>
         <div class="card-jp">&#9733; Progressive Jackpot: <span class="prog-inline">$500.00</span></div>
         <button class="play-btn" id="btn-sp5"
           onclick="launchGame('https://theturrellesisters.github.io/straypups_big_munny_5d/index.html')">
@@ -545,9 +686,14 @@ var SUPABASE_ANON_KEY = 'sb_publishable_NGsKBAUUsVUvD5XKTblIdw_aBDPldSd';
 /* ── Launch game ── */
 function launchGame(url) {
   try { sessionStorage.setItem('__lobby_url', window.location.href); } catch(e) {}
-  /* Cache bust: append timestamp so browser always loads fresh index.html */
+  /* Cache bust + nickname param */
   var sep = url.indexOf('?') === -1 ? '?' : '&';
-  window.location.href = url + sep + 'v=' + Date.now();
+  var dest = url + sep + 'v=' + Date.now();
+  var nick = window._playerNickname || (function(){
+    try { return localStorage.getItem('tsgc_nickname') || ''; } catch(e) { return ''; }
+  }());
+  if (nick) dest += '&player=' + encodeURIComponent(nick);
+  window.location.href = dest;
 }
 
 /* ── Install prompt ── */
@@ -610,8 +756,14 @@ if(_car)_car.addEventListener('scroll',function(){
 },{passive:true});
 
 /* ── Progressive display ── */
+function fmtProg(val){
+  var v=parseFloat(val);if(isNaN(v))return '$0.00';
+  var p=v.toFixed(2).split('.');
+  p[0]=p[0].replace(/\B(?=(\d{3})+(?!\d))/g,',');
+  return '$'+p.join('.');
+}
 function updateProgDisplay(val){
-  var disp='$'+Number(val).toFixed(2);
+  var disp=fmtProg(val);
   var pv=document.getElementById('prog-val');if(pv)pv.textContent=disp;
   var els=document.querySelectorAll('.prog-inline');for(var i=0;i<els.length;i++)els[i].textContent=disp;
 }
@@ -625,7 +777,7 @@ function loadSupabase(){
       var c=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
       c.from('progressive').select('value,seed').eq('id',1).single().then(function(r){
         if(!r.error&&r.data){updateProgDisplay(r.data.value);
-          var ps=document.getElementById('prog-seed');if(ps)ps.textContent='Seed: $'+Number(r.data.seed).toFixed(2);}
+          var ps=document.getElementById('prog-seed');if(ps)ps.textContent='Seed: '+fmtProg(r.data.seed);}
       });
       c.channel('lp').on('postgres_changes',{event:'UPDATE',schema:'public',table:'progressive',filter:'id=eq.1'},
         function(p){if(p.new&&p.new.value!=null)updateProgDisplay(p.new.value);}).subscribe();
@@ -634,7 +786,7 @@ function loadSupabase(){
       var _v=['assets/videos/josie_dance.mp4','assets/videos/sasha_dance.mp4','assets/videos/sasha_alt.mp4'];
       c.channel('lh').on('postgres_changes',{event:'INSERT',schema:'public',table:'progressive_hits'},
         function(p){if(!p.new)return;
-          var ae=document.getElementById('lac-amt');if(ae)ae.textContent='$'+Number(p.new.amount||0).toFixed(2);
+          var ae=document.getElementById('lac-amt');if(ae)ae.textContent=fmtProg(p.new.amount||0);
           var vd=document.getElementById('lac-vid');if(vd){vd.src=_v[Math.floor(Math.random()*_v.length)];vd.load();vd.play();}
           var el=document.getElementById('lobby-ac');if(el)el.classList.add('show');
         }).subscribe();
@@ -652,5 +804,147 @@ if('serviceWorker' in navigator)navigator.serviceWorker.register('service-worker
 loadSupabase();
 </script>
 
+<script>
+
+/* ── LOBBY SPLASH / AGE GATE + NICKNAME ── */
+(function() {
+  var NICK_KEY = 'tsgc_nickname';
+  var AGE_KEY  = 'tsgc_age_confirmed';
+
+  function getSavedNick() {
+    try { return localStorage.getItem(NICK_KEY) || ''; } catch(e) { return ''; }
+  }
+  function saveNick(n) {
+    try { localStorage.setItem(NICK_KEY, n); } catch(e) {}
+  }
+  function getAgeConfirmed() {
+    try { return localStorage.getItem(AGE_KEY) === '1'; } catch(e) { return false; }
+  }
+  function setAgeConfirmed() {
+    try { localStorage.setItem(AGE_KEY, '1'); } catch(e) {}
+  }
+
+  function showBadge(nick) {
+    var badge = document.getElementById('ls-player-badge');
+    var nameEl = document.getElementById('ls-badge-name');
+    if (badge && nameEl) {
+      nameEl.textContent = '\u2605 ' + nick;
+      badge.classList.add('show');
+    }
+  }
+
+  function dismissSplash() {
+    var sp = document.getElementById('lobby-splash');
+    if (!sp) return;
+    sp.classList.add('fade-out');
+    setTimeout(function() { sp.classList.add('hidden'); }, 500);
+  }
+
+  window.lsEnter = function() {
+    var ageConfirmed = getAgeConfirmed();
+    var nickSection = document.getElementById('ls-nickname-section');
+    var btnEnter = document.getElementById('ls-btn-enter');
+
+    if (!ageConfirmed) {
+      /* First click — confirm age, show nickname field */
+      setAgeConfirmed();
+      var savedNick = getSavedNick();
+      if (savedNick) {
+        /* Already have a nickname — go straight in */
+        showBadge(savedNick);
+        window._playerNickname = savedNick;
+        dismissSplash();
+        return;
+      }
+      /* Show nickname input */
+      if (nickSection) nickSection.classList.add('show');
+      if (btnEnter) btnEnter.textContent = 'ENTER CASINO';
+      var inp = document.getElementById('ls-nick-input');
+      if (inp) setTimeout(function() { inp.focus(); }, 100);
+      return;
+    }
+
+    /* Second click — validate and enter */
+    var savedNick = getSavedNick();
+    if (savedNick) {
+      /* Returning player with saved nick */
+      showBadge(savedNick);
+      window._playerNickname = savedNick;
+      dismissSplash();
+      return;
+    }
+
+    var inp = document.getElementById('ls-nick-input');
+    var errEl = document.getElementById('ls-nick-error');
+    var nick = inp ? inp.value.trim() : '';
+    if (!nick || nick.length < 2) {
+      if (errEl) errEl.style.display = 'block';
+      if (inp) inp.focus();
+      return;
+    }
+    if (errEl) errEl.style.display = 'none';
+    saveNick(nick);
+    showBadge(nick);
+    window._playerNickname = nick;
+    dismissSplash();
+  };
+
+  window.lsUnder = function() {
+    /* Redirect away — entertainment purposes */
+    window.location.href = 'https://www.google.com';
+  };
+
+  window.lsChangeName = function() {
+    /* Allow player to change their nickname */
+    var current = getSavedNick();
+    var newNick = prompt('Change your nickname:', current);
+    if (newNick && newNick.trim().length >= 2) {
+      var nick = newNick.trim().substring(0, 16);
+      saveNick(nick);
+      showBadge(nick);
+      window._playerNickname = nick;
+    }
+  };
+
+  /* On load — check if returning player */
+  (function init() {
+    var ageConfirmed = getAgeConfirmed();
+    var savedNick = getSavedNick();
+
+    if (ageConfirmed && savedNick) {
+      /* Returning player — skip straight past age gate, just show nickname input briefly */
+      showBadge(savedNick);
+      window._playerNickname = savedNick;
+      var nickSection = document.getElementById('ls-nickname-section');
+      var inp = document.getElementById('ls-nick-input');
+      var btnEnter = document.getElementById('ls-btn-enter');
+      if (nickSection) nickSection.classList.add('show');
+      if (inp) inp.value = savedNick;
+      if (btnEnter) btnEnter.textContent = 'ENTER CASINO — ' + savedNick;
+      return;
+    }
+
+    if (ageConfirmed && !savedNick) {
+      /* Age confirmed but no nick yet — show nickname field immediately */
+      var nickSection2 = document.getElementById('ls-nickname-section');
+      var btnEnter2 = document.getElementById('ls-btn-enter');
+      if (nickSection2) nickSection2.classList.add('show');
+      if (btnEnter2) btnEnter2.textContent = 'ENTER CASINO';
+    }
+    /* Else: first visit — show full age gate */
+  }());
+
+  /* Enter key on nickname input */
+  document.addEventListener('DOMContentLoaded', function() {
+    var inp = document.getElementById('ls-nick-input');
+    if (inp) {
+      inp.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') window.lsEnter();
+      });
+    }
+  });
+}());
+
+</script>
 </body>
 </html>
