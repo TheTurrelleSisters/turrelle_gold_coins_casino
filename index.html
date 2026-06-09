@@ -545,7 +545,9 @@ var SUPABASE_ANON_KEY = 'sb_publishable_NGsKBAUUsVUvD5XKTblIdw_aBDPldSd';
 /* ── Launch game ── */
 function launchGame(url) {
   try { sessionStorage.setItem('__lobby_url', window.location.href); } catch(e) {}
-  window.location.href = url;
+  /* Cache bust: append timestamp so browser always loads fresh index.html */
+  var sep = url.indexOf('?') === -1 ? '?' : '&';
+  window.location.href = url + sep + 'v=' + Date.now();
 }
 
 /* ── Install prompt ── */
