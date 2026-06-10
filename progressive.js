@@ -52,7 +52,7 @@ var Progressive = (function () {
   function _loadSDK(cb) {
     if (typeof window !== 'undefined' && window.supabase) { cb(); return; }
     var s = document.createElement('script');
-    s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+    s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.0/dist/umd/supabase.min.js';
     s.onload  = cb;
     s.onerror = function () { console.warn('[Progressive] SDK load failed — offline.'); };
     document.head.appendChild(s);
@@ -188,10 +188,20 @@ var Progressive = (function () {
       })
       .subscribe(function (status) {
         if (status === 'SUBSCRIBED') {
+          /* playerLabel: pull nickname set by lobby splash gate.
+             Falls back to localStorage so it works even if init() runs
+             before the splash is dismissed. */
+          var _nick = '';
+          try {
+            _nick = (window._playerNickname) ||
+                    localStorage.getItem('tsgc_nickname') || '';
+          } catch(e) {}
           _presenceChannel.track({
-            gameId:   PROG_GAME_ID,
-            denom:    PROG_DENOM,
-            joinedAt: new Date().toISOString()
+            gameId:      PROG_GAME_ID,
+            denom:       PROG_DENOM,
+            joinedAt:    new Date().toISOString(),
+            playerLabel: _nick || null,
+            lastSpin:    null
           });
         }
       });
@@ -329,6 +339,23 @@ var Progressive = (function () {
         console.warn('[Progressive] init failed:', e);
         if (onReady) onReady();
       }
+    });
+  }
+
+  /* Called by lobby after player enters/changes nickname so presence updates */
+  function retrack() {
+    if (!_presenceChannel) return;
+    var _nick = '';
+    try {
+      _nick = (window._playerNickname) ||
+              localStorage.getItem('tsgc_nickname') || '';
+    } catch(e) {}
+    _presenceChannel.track({
+      gameId:      PROG_GAME_ID,
+      denom:       PROG_DENOM,
+      joinedAt:    new Date().toISOString(),
+      playerLabel: _nick || null,
+      lastSpin:    null
     });
   }
 
@@ -494,6 +521,7 @@ var Progressive = (function () {
     onPresenceChange: onPresenceChange,
     onMessage:        onMessage,
     onForceWin:       onForceWin,
-    onForceNotify:    onForceNotify
+    onForceNotify:    onForceNotify,
+    retrack:          retrack
   };
 }());
