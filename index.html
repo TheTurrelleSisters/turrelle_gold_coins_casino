@@ -675,10 +675,6 @@ GOLD COINS CASINO &bull; v2.4</div>
 <!-- broadcast-init.js removed: lobby uses native _queueOpMessage / op-message-banner system -->
 
 
-<!-- PROGRESSIVE MODULE — must load before main lobby script -->
-<script>var PROG_GAME_ID = 'lobby'; var PROG_DENOM = 0;</script>
-<script src="progressive.js"></script>
-
 <!-- MAIN LOBBY SCRIPT -->
 
 
@@ -775,37 +771,30 @@ function updateProgDisplay(val){
   var els=document.querySelectorAll('.prog-inline');for(var i=0;i<els.length;i++)els[i].textContent=disp;
 }
 
-/* ── Load Supabase + init Progressive ── */
-/* Single SDK load — Progressive.init() creates the one shared client.    */
-/* No throwaway client here — hooks into Progressive's public API instead. */
+/* ── Load Supabase ── */
 function loadSupabase(){
   var s=document.createElement('script');
-  /* Pinned version — must match progressive.js */
-  s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.0/dist/umd/supabase.min.js';
+  s.src='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
   s.onload=function(){
-    Progressive.init(function(){
-      /* Initial pot display from Progressive's already-fetched value */
-      updateProgDisplay(Progressive.getValue());
-
-      /* Live pot updates */
-      Progressive.onChange(function(val){ updateProgDisplay(val); });
-
-      /* Broadcast messages from operator */
-      Progressive.onMessage(function(msg){
-        if(msg && window._queueOpMessage) window._queueOpMessage(msg);
+    try{
+      var c=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+      c.from('progressive').select('value,seed').eq('id',1).single().then(function(r){
+        if(!r.error&&r.data){updateProgDisplay(r.data.value);
+          var ps=document.getElementById('prog-seed');if(ps)ps.textContent='Seed: '+fmtProg(r.data.seed);}
       });
-
-      /* Jackpot hit celebration banner */
-      Progressive.onForceNotify(function(amt){
-        var _v=['assets/videos/josie_dance.mp4','assets/videos/sasha_dance.mp4','assets/videos/sasha_alt.mp4'];
-        var ae=document.getElementById('lac-amt');if(ae)ae.textContent=fmtProg(amt||0);
-        var vd=document.getElementById('lac-vid');
-        if(vd){vd.src=_v[Math.floor(Math.random()*_v.length)];vd.load();vd.play();}
-        var el=document.getElementById('lobby-ac');if(el)el.classList.add('show');
-      });
-    });
+      c.channel('lp').on('postgres_changes',{event:'UPDATE',schema:'public',table:'progressive',filter:'id=eq.1'},
+        function(p){if(p.new&&p.new.value!=null)updateProgDisplay(p.new.value);}).subscribe();
+      try{c.channel('lm').on('postgres_changes',{event:'INSERT',schema:'public',table:'broadcast_messages'},
+        function(p){if(p.new&&window._queueOpMessage)window._queueOpMessage(p.new);}).subscribe();}catch(e){}
+      var _v=['assets/videos/josie_dance.mp4','assets/videos/sasha_dance.mp4','assets/videos/sasha_alt.mp4'];
+      c.channel('lh').on('postgres_changes',{event:'INSERT',schema:'public',table:'progressive_hits'},
+        function(p){if(!p.new)return;
+          var ae=document.getElementById('lac-amt');if(ae)ae.textContent=fmtProg(p.new.amount||0);
+          var vd=document.getElementById('lac-vid');if(vd){vd.src=_v[Math.floor(Math.random()*_v.length)];vd.load();vd.play();}
+          var el=document.getElementById('lobby-ac');if(el)el.classList.add('show');
+        }).subscribe();
+    }catch(e){console.warn('Lobby error',e);}
   };
-  s.onerror=function(){ console.warn('[Lobby] SDK load failed — retrying in 5s'); setTimeout(loadSupabase,5000); };
   document.head.appendChild(s);
 }
 
@@ -900,8 +889,6 @@ loadSupabase();
     saveNick(nick);
     showBadge(nick);
     window._playerNickname = nick;
-    /* Update presence payload with actual name so operator console shows it */
-    if (typeof Progressive !== 'undefined' && Progressive.retrack) Progressive.retrack();
     dismissSplash();
   };
 
@@ -919,7 +906,6 @@ loadSupabase();
       saveNick(nick);
       showBadge(nick);
       window._playerNickname = nick;
-      if (typeof Progressive !== 'undefined' && Progressive.retrack) Progressive.retrack();
     }
   };
 
