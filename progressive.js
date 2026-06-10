@@ -1,245 +1,509 @@
-/* ================================================================
-   progressive.js — Gold Coins Casino Progressive Operator v2.2
-   FIXED: No longer creates its own Supabase client.
-   Relies on _client created by index.html after PIN login.
-   Exposes _op_* functions used by the UI.
-   ================================================================ */
+/*
+ * progressive.js — Gold Coins Casino Virtual Progressive Controller
+ * Stray-Pup LLC / The Turrelle Sisters LLC
+ * v1.6 — Merged game-client library + schema-complete hit inserts.
+ *
+ * WHAT THIS FILE IS:
+ *   Drop-in for every game client (TSBIGMUNNY, StrayPups variants, etc.).
+ *   The operator dashboard (progressive_operator/index.html) is self-contained
+ *   and does NOT load this file — all _op_* logic lives inline there.
+ *
+ * MULTI-USER FIXES carried forward from v1.3:
+ *  1. Channel name collision — all channels include _sessionKey suffix so
+ *     each client is unique; second subscriber no longer silently dropped.
+ *  2. prog-commands channel extended to full session key.
+ *  3. Contribution flush: in-flight guard prevents concurrent double-sends.
+ *  4. Presence channel 'presence-lobby' intentionally shared — unchanged.
+ *  5. Reconnect: exponential-backoff re-subscribe on dropped WebSocket.
+ *  6. Four separate postgres_changes channels consolidated into ONE per
+ *     session — reduces WebSocket slots, fixes Edge Function overload.
+ *
+ * v1.4 — Fast connect + presence sync.
+ * v1.5 — Version bump; all v1.4 fixes carried forward.
+ * v1.6 — hit() and claimForce() now write all schema columns to
+ *         progressive_hits: player_session, player_label, game_title,
+ *         win_patterns. Matches SQL schema as of 2026-06-10.
+ *
+ * ES5 only. No arrow functions. No const/let. No backticks. No async/await.
+ */
 
-/* ── State ── */
-var _armed = false;
+var SUPABASE_URL      = 'https://gdmmoeggkqsvqnqyrubx.supabase.co';
+var SUPABASE_ANON_KEY = 'sb_publishable_NGsKBAUUsVUvD5XKTblIdw_aBDPldSd';
 
-/* ── Badge helper ── */
-function _setBadge(ok) {
-  var el = document.getElementById('conn-badge');
-  if (!el) return;
-  el.className   = ok ? 'ok'   : 'err';
-  el.textContent = ok ? 'LIVE' : 'OFFLINE';
-}
+/* Per-game identity — set via inline script BEFORE this file loads:
+     var PROG_GAME_ID = 'straypups_5d';
+     var PROG_DENOM   = 5.00;
+*/
+var PROG_GAME_ID = (typeof PROG_GAME_ID !== 'undefined') ? PROG_GAME_ID : 'unknown';
+var PROG_DENOM   = (typeof PROG_DENOM   !== 'undefined') ? PROG_DENOM   : 1.00;
 
-/* ── Display helpers ── */
-function _updatePotDisplay(val, seed) {
-  var v = Number(val  || 0).toFixed(2);
-  var s = Number(seed || 0).toFixed(2);
+var Progressive = (function () {
 
-  var potVal  = document.getElementById('pot-val');
-  var ctrlPot = document.getElementById('ctrl-pot');
-  var potSeed = document.getElementById('pot-seed');
-  if (potVal)  potVal.textContent  = '$' + v;
-  if (ctrlPot) ctrlPot.textContent = '$' + v;
-  if (potSeed) potSeed.textContent = '$' + s;
+  /* FIX-1: Preload the Supabase SDK immediately when this script loads.
+     By the time init() is called the script will already be cached/parsed,
+     cutting connect latency by 1-3 seconds. */
+  (function _preloadSDK() {
+    if (typeof window !== 'undefined' && !window.supabase) {
+      var s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+      s.async = true;
+      document.head.appendChild(s);
+    }
+  }());
 
-  var upd = document.getElementById('pot-updated');
-  if (upd) {
-    upd.textContent = 'Updated ' + new Date().toLocaleTimeString();
+  /* Private state */
+  var _client           = null;
+  var _connected        = false;
+  var _localValue       = 500.00;
+  var _seed             = 500.00;
+  var _ceiling          = 9999.00;
+  var _contribRate      = 0.02;
+  var _triggerOdds      = 500;
+  var _pendingAdd       = 0;
+  var _flushTimer       = null;
+  var _flushInFlight    = false;
+  var _valueListeners   = [];
+  var _presenceChannel  = null;
+  var _presenceCount    = 0;
+  var _presenceListeners= [];
+  var _sessionKey       = 'sess_' + Math.random().toString(36).substr(2, 9);
+  var _mainChannel      = null;
+  var _reconnectDelay   = 2000;
+  var _reconnectTimer   = null;
+
+  /* Force jackpot state */
+  var _forceArmed       = false;
+  var _forceCommandId   = null;
+  var _forceClaimed     = false;
+  var _onForceWin       = null;
+  var _onForceNotify    = null;
+  var _justWon          = false;
+
+  /* Broadcast message state */
+  var _messageListeners  = [];
+  var _lastSeenMessageId = 0;
+  var _SEEN_KEY          = 'prog_last_msg_' + PROG_GAME_ID;
+
+  /* ===============================================================
+     SDK LOADER
+     =============================================================== */
+  function _loadSDK(cb) {
+    if (typeof window !== 'undefined' && window.supabase) { cb(); return; }
+    var attempts = 0;
+    var poll = setInterval(function() {
+      attempts++;
+      if (window.supabase) { clearInterval(poll); cb(); return; }
+      if (attempts >= 50) {
+        clearInterval(poll);
+        var s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+        s.onload  = cb;
+        s.onerror = function () { console.warn('[Progressive] SDK load failed — offline.'); };
+        document.head.appendChild(s);
+      }
+    }, 100);
   }
 
-  var inp = document.getElementById('inp-seed');
-  if (inp && document.activeElement !== inp) inp.value = s;
-}
-
-function _setArmed(armed) {
-  _armed = armed;
-  var banner = document.getElementById('armed-banner');
-  if (banner) banner.classList.toggle('show', armed);
-}
-
-function _toast(msg) {
-  var el = document.getElementById('toast');
-  if (!el) return;
-  el.textContent = msg;
-  el.classList.add('on');
-  setTimeout(function() { el.classList.remove('on'); }, 2500);
-}
-
-/* ── Guard: ensure _client is ready before any action ── */
-function _getClient() {
-  if (typeof _client !== 'undefined' && _client) return _client;
-  _toast('Not connected — please wait');
-  return null;
-}
-
-/* ══════════════════════════════════════════════════════════════════
-   OPERATOR ACTIONS
-   ══════════════════════════════════════════════════════════════════ */
-
-/* ── Resolve a player label from the presence/ID maps built by index.html ── */
-function _resolvePlayerLabel(sessionKey) {
-  if (!sessionKey) return '—';
-  /* _getPlayerLabel and _presenceState/_playerIdMap are defined in index.html */
-  if (typeof _getPlayerLabel === 'function') return _getPlayerLabel(sessionKey);
-  if (typeof _playerIdMap !== 'undefined' && _playerIdMap[sessionKey]) {
-    return 'Player ' + _playerIdMap[sessionKey];
+  /* ===============================================================
+     NOTIFY HELPERS
+     =============================================================== */
+  function _notifyValue() {
+    for (var i = 0; i < _valueListeners.length; i++) {
+      try { _valueListeners[i](_localValue); } catch (e) {}
+    }
   }
-  return sessionKey.substr(0, 8);
-}
+  function _notifyPresence() {
+    for (var i = 0; i < _presenceListeners.length; i++) {
+      try { _presenceListeners[i](_presenceCount); } catch (e) {}
+    }
+  }
+  function _notifyMessage(msg) {
+    for (var i = 0; i < _messageListeners.length; i++) {
+      try { _messageListeners[i](msg); } catch(e) {}
+    }
+    _saveLastSeen(msg.id);
+  }
 
-/* ── Find the active armed terminal session from presence state ──
-   Returns { session, game_id, game_title, denom } or null if no
-   active armed terminal can be identified.                        ── */
-function _resolveWinnerSession() {
-  if (typeof _presenceState === 'undefined') return null;
-  var keys = Object.keys(_presenceState);
-  for (var i = 0; i < keys.length; i++) {
-    var k = keys[i];
-    var p = _presenceState[k];
-    if (!p || p.gameId === 'operator') continue;
-    /* Prefer the most-recently-spun terminal */
+  /* ===============================================================
+     DB FETCH
+     =============================================================== */
+  function _fetchRow(cb) {
+    _client.from('progressive').select('*').eq('id', 1).single().then(function (res) {
+      if (res.error) { console.warn('[Progressive] fetchRow:', res.error.message); if (cb) cb(); return; }
+      var d = res.data;
+      _localValue  = parseFloat(d.value)        || _seed;
+      _seed        = parseFloat(d.seed)         || _seed;
+      _ceiling     = parseFloat(d.ceiling)      || _ceiling;
+      _contribRate = parseFloat(d.contrib_rate) || _contribRate;
+      if (d.trigger_odds != null) _triggerOdds = parseFloat(d.trigger_odds) || _triggerOdds;
+      _notifyValue();
+      if (cb) cb();
+    });
+  }
+
+  function _checkArmedCommand() {
+    _client.from('progressive_commands')
+      .select('*').eq('status', 'armed').limit(1).then(function (res) {
+        if (res.error) {
+          console.warn('[Progressive] commands table error:', res.error.message);
+          return;
+        }
+        if (!res.data || !res.data.length) return;
+        _forceArmed     = true;
+        _forceCommandId = res.data[0].id;
+        console.log('[Progressive] Force jackpot ARMED on load — fires on next spin!');
+      });
+  }
+
+  /* ===============================================================
+     BROADCAST MESSAGES
+     =============================================================== */
+  function _loadLastSeen() {
+    try { var v = localStorage.getItem(_SEEN_KEY); if (v) _lastSeenMessageId = parseInt(v, 10) || 0; } catch(e) {}
+  }
+  function _saveLastSeen(id) {
+    _lastSeenMessageId = id;
+    try { localStorage.setItem(_SEEN_KEY, String(id)); } catch(e) {}
+  }
+  function _checkUnreadMessages() {
+    _loadLastSeen();
+    _client.from('broadcast_messages')
+      .select('*')
+      .gt('id', _lastSeenMessageId)
+      .order('id', { ascending: true })
+      .then(function(res) {
+        if (res.error || !res.data || !res.data.length) return;
+        res.data.forEach(function(msg, i) {
+          setTimeout(function() { _notifyMessage(msg); }, i * 4000);
+        });
+      });
+  }
+
+  /* ===============================================================
+     REALTIME — CONSOLIDATED SINGLE CHANNEL (FIX-1, FIX-6)
+     One channel per session (unique name) with all postgres_changes
+     listeners attached.
+     =============================================================== */
+  function _subscribeMain() {
+    var chName = 'prog-main-' + _sessionKey;
+    _mainChannel = _client.channel(chName)
+
+      .on('postgres_changes', {
+        event: 'UPDATE', schema: 'public', table: 'progressive', filter: 'id=eq.1'
+      }, function (p) {
+        if (!p.new) return;
+        _localValue  = parseFloat(p.new.value)        || _localValue;
+        _seed        = parseFloat(p.new.seed)         || _seed;
+        _ceiling     = parseFloat(p.new.ceiling)      || _ceiling;
+        _contribRate = parseFloat(p.new.contrib_rate) || _contribRate;
+        if (p.new.trigger_odds != null) _triggerOdds = parseFloat(p.new.trigger_odds) || _triggerOdds;
+        _notifyValue();
+      })
+
+      .on('postgres_changes', {
+        event: 'INSERT', schema: 'public', table: 'progressive_commands'
+      }, function (p) {
+        if (!p.new || p.new.command !== 'force_jackpot' || p.new.status !== 'armed') return;
+        _forceArmed     = true;
+        _forceCommandId = p.new.id;
+        _forceClaimed   = false;
+        console.log('[Progressive] FORCE JACKPOT ARMED — fires on next spin!');
+      })
+
+      .on('postgres_changes', {
+        event: 'UPDATE', schema: 'public', table: 'progressive_commands'
+      }, function (p) {
+        if (!p.new || p.new.command !== 'force_jackpot') return;
+        if (p.new.status === 'won') {
+          if (p.new.winner_session === _sessionKey) return;
+          _forceArmed     = false;
+          _forceCommandId = null;
+          if (_onForceNotify) {
+            _onForceNotify(
+              parseFloat(p.new.winner_amt) || 0,
+              p.new.winner_game || 'another game'
+            );
+          }
+        }
+      })
+
+      .on('postgres_changes', {
+        event: 'INSERT', schema: 'public', table: 'progressive_hits'
+      }, function (p) {
+        if (!p.new || _justWon) return;
+        if (_onForceNotify) {
+          _onForceNotify(
+            parseFloat(p.new.amount) || 0,
+            p.new.game_id || 'another game'
+          );
+        }
+      })
+
+      .on('postgres_changes', {
+        event: 'INSERT', schema: 'public', table: 'broadcast_messages'
+      }, function (p) {
+        if (!p.new) return;
+        _notifyMessage(p.new);
+      })
+
+      .subscribe(function (status) {
+        if (status === 'SUBSCRIBED') {
+          _reconnectDelay = 2000;
+          if (_reconnectTimer) { clearTimeout(_reconnectTimer); _reconnectTimer = null; }
+          console.log('[Progressive] Realtime connected (' + _sessionKey + ')');
+        }
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+          console.warn('[Progressive] Realtime ' + status + ' — reconnecting in ' + (_reconnectDelay/1000) + 's');
+          _scheduleReconnect();
+        }
+      });
+  }
+
+  function _scheduleReconnect() {
+    if (_reconnectTimer) return;
+    var delay = _reconnectDelay;
+    _reconnectDelay = Math.min(_reconnectDelay * 2, 30000);
+    _reconnectTimer = setTimeout(function () {
+      _reconnectTimer = null;
+      if (!_client) return;
+      if (_mainChannel) {
+        try { _client.removeChannel(_mainChannel); } catch(e) {}
+        _mainChannel = null;
+      }
+      _subscribeMain();
+    }, delay);
+  }
+
+  /* ===============================================================
+     PRESENCE
+     =============================================================== */
+  function _subscribePresence() {
+    _presenceChannel = _client.channel('presence-lobby', {
+      config: { presence: { key: _sessionKey } }
+    });
+    _presenceChannel
+      .on('presence', { event: 'sync' }, function () {
+        _presenceCount = Object.keys(_presenceChannel.presenceState()).length;
+        _notifyPresence();
+      })
+      .on('presence', { event: 'join' }, function () {
+        _presenceCount = Object.keys(_presenceChannel.presenceState()).length;
+        _notifyPresence();
+      })
+      .on('presence', { event: 'leave' }, function () {
+        _presenceCount = Object.keys(_presenceChannel.presenceState()).length;
+        _notifyPresence();
+      })
+      .subscribe(function (status) {
+        if (status === 'SUBSCRIBED') {
+          _presenceChannel.track({
+            gameId:   PROG_GAME_ID,
+            denom:    PROG_DENOM,
+            joinedAt: new Date().toISOString(),
+            lastSpin: null
+          });
+        }
+      });
+  }
+
+  /* ===============================================================
+     CONTRIBUTION FLUSH
+     =============================================================== */
+  function _scheduleFlush() {
+    if (_flushTimer) return;
+    _flushTimer = setTimeout(function () {
+      _flushTimer = null;
+      if (_pendingAdd <= 0 || !_client || _flushInFlight) return;
+      var toAdd   = parseFloat(_pendingAdd.toFixed(4));
+      _pendingAdd = 0;
+      _flushInFlight = true;
+      _client.rpc('progressive_contribute', { add_amount: toAdd }).then(function (res) {
+        _flushInFlight = false;
+        if (res.error) {
+          console.warn('[Progressive] contribute error:', res.error.message);
+          _pendingAdd += toAdd;
+          _scheduleFlush();
+        }
+      });
+    }, 5000);
+  }
+
+  /* ===============================================================
+     HIT RECORD BUILDER — writes all progressive_hits schema columns
+     info: { pattern, balls, bet, gameTitle, playerLabel, winPatterns }
+     =============================================================== */
+  function _buildHitRecord(hitAmt, info) {
     return {
-      session:    k,
-      game_id:    p.gameId   || 'unknown',
-      game_title: p.gameId   || 'Unknown Terminal',
-      denom:      p.denom    || null
+      game_id:        PROG_GAME_ID,
+      game_title:     (info && info.gameTitle)      ? info.gameTitle    : PROG_GAME_ID,
+      denom:          PROG_DENOM,
+      amount:         hitAmt,
+      pattern:        (info && info.pattern)        ? info.pattern      : 'Progressive Jackpot',
+      balls:          (info && info.balls != null)  ? info.balls        : 0,
+      bet:            (info && info.bet   != null)  ? info.bet          : 0,
+      player_session: _sessionKey,
+      player_label:   (info && info.playerLabel)   ? info.playerLabel  : null,
+      win_patterns:   (info && info.winPatterns)   ? info.winPatterns  : null
     };
   }
-  return null;
-}
 
-window._op_saveSeed = function() {
-  var sb = _getClient(); if (!sb) return;
-  var val = parseFloat(document.getElementById('inp-seed').value);
-  if (isNaN(val) || val < 0) return _toast('Invalid seed value');
-  sb.from('progressive').update({ seed: val }).eq('id', 1)
-    .then(function(r) {
-      if (r.error) _toast('Error: ' + r.error.message);
-      else _toast('Seed saved: $' + val.toFixed(2));
+  /* ===============================================================
+     FORCE WIN CLAIM — atomic, race-condition safe
+     =============================================================== */
+  function _claimForceWin(onClaimed) {
+    if (!_forceCommandId || _forceClaimed) { onClaimed(false); return; }
+    _forceClaimed = true;
+    var hitAmt = parseFloat(_localValue.toFixed(2));
+
+    _client.from('progressive_commands')
+      .update({
+        status:         'won',
+        winner_session: _sessionKey,
+        winner_game:    PROG_GAME_ID,
+        winner_amt:     hitAmt,
+        won_at:         new Date().toISOString()
+      })
+      .eq('id', _forceCommandId)
+      .eq('status', 'armed')
+      .select()
+      .then(function (res) {
+        if (res.error || !res.data || !res.data.length) {
+          _forceClaimed = false;
+          onClaimed(false);
+          return;
+        }
+        _justWon = true;
+        setTimeout(function(){ _justWon = false; }, 5000);
+        _localValue = _seed;
+        _notifyValue();
+        _forceArmed = false;
+        _client.rpc('progressive_hit', { reset_to: _seed });
+        _client.from('progressive_hits').insert(
+          _buildHitRecord(hitAmt, { pattern: 'Force Jackpot', balls: 0, bet: 0 })
+        );
+        onClaimed(true, hitAmt);
+      });
+  }
+
+  /* ===============================================================
+     RANDOM TRIGGER
+     Odds scale from 1/_triggerOdds at seed to 1.0 at ceiling.
+     =============================================================== */
+  function _shouldRandomTrigger() {
+    if (_justWon || _forceArmed) return false;
+    var range = _ceiling - _seed;
+    if (range <= 0) return false;
+    var base   = 1 / Math.max(_triggerOdds, 1);
+    var growth = Math.max(0, Math.min(1, (_localValue - _seed) / range));
+    var chance = base + (1 - base) * growth;
+    return Math.random() < chance;
+  }
+
+  function _updateLastSpin() {
+    if (!_presenceChannel) return;
+    try {
+      _presenceChannel.track({
+        gameId:   PROG_GAME_ID,
+        denom:    PROG_DENOM,
+        joinedAt: new Date().toISOString(),
+        lastSpin: new Date().toISOString()
+      });
+    } catch(e) {}
+  }
+
+  function _fmtMoney(n) {
+    var parts = parseFloat(n).toFixed(2).split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return '$' + parts[0] + '.' + parts[1];
+  }
+
+  /* ===============================================================
+     PUBLIC API
+     =============================================================== */
+
+  function init(onReady) {
+    _loadSDK(function () {
+      try {
+        _client    = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        _connected = true;
+        _fetchRow(function () {
+          _subscribeMain();
+          _subscribePresence();
+          _checkArmedCommand();
+          _checkUnreadMessages();
+          setInterval(function() { _fetchRow(null); }, 60000);
+          if (onReady) onReady();
+        });
+      } catch (e) {
+        console.warn('[Progressive] init failed:', e);
+        if (onReady) onReady();
+      }
     });
-};
+  }
 
-window._op_arm = function() {
-  var sb = _getClient(); if (!sb) return;
-  if (_armed) return _toast('Already armed');
-  if (!confirm('ARM the jackpot? Next eligible spin will trigger a payout.')) return;
-  sb.from('progressive').update({ armed: true }).eq('id', 1)
-    .then(function(r) {
-      if (r.error) _toast('Error: ' + r.error.message);
-      else { _setArmed(true); _toast('Jackpot ARMED'); }
-    });
-};
-
-window._op_disarm = function() {
-  var sb = _getClient(); if (!sb) return;
-  sb.from('progressive').update({ armed: false }).eq('id', 1)
-    .then(function(r) {
-      if (r.error) _toast('Error: ' + r.error.message);
-      else { _setArmed(false); _toast('Jackpot disarmed'); }
-    });
-};
-
-window._op_setPot = function() {
-  var sb = _getClient(); if (!sb) return;
-  var val = parseFloat(document.getElementById('inp-override').value);
-  if (isNaN(val) || val < 0) return _toast('Enter a valid amount');
-  sb.from('progressive').update({ value: val }).eq('id', 1)
-    .then(function(r) {
-      if (r.error) _toast('Error: ' + r.error.message);
-      else _toast('Pot set to $' + val.toFixed(2));
-    });
-};
-
-window._op_trigger = function() {
-  var sb = _getClient(); if (!sb) return;
-  var potEl = document.getElementById('pot-val');
-  var amt   = potEl ? parseFloat(potEl.textContent.replace('$', '')) : 0;
-  if (isNaN(amt) || amt <= 0) return _toast('Invalid pot amount');
-  var seed  = parseFloat(document.getElementById('inp-seed').value) || 500;
-  if (!confirm('TRIGGER a jackpot hit of $' + amt.toFixed(2) + '?')) return;
-
-  /* Step 1: insert hit record — all columns from progressive_hits schema.
-     player_session / player_label pulled from whichever terminal is currently
-     in the armed command (winner_session), or left as OPERATOR MANUAL if none. */
-  var armedWinner = (typeof _presenceState !== 'undefined')
-    ? _resolveWinnerSession() : null;
-
-  sb.from('progressive_hits').insert({
-    game_id:        armedWinner ? armedWinner.game_id   : 'operator',
-    game_title:     armedWinner ? armedWinner.game_title : 'OPERATOR MANUAL',
-    denom:          armedWinner ? armedWinner.denom      : null,
-    amount:         amt,
-    pattern:        'Operator Manual Trigger',
-    balls:          0,
-    bet:            0,
-    player_session: armedWinner ? armedWinner.session   : null,
-    player_label:   armedWinner ? _resolvePlayerLabel(armedWinner.session) : 'Operator',
-    win_patterns:   'Operator Manual Trigger'
-  })
-  .then(function(r) {
-    if (r.error) {
-      _toast('Hit insert error: ' + r.error.message);
-      return null; /* signal failure */
+  function contribute(betAmt) {
+    if (!betAmt || betAmt <= 0) return false;
+    var addition = betAmt * _contribRate;
+    _localValue  = _localValue + addition;
+    if (_localValue > _ceiling) _localValue = _ceiling;
+    _notifyValue();
+    if (_connected && _client) {
+      _pendingAdd += addition;
+      _scheduleFlush();
     }
-    /* Step 2: reset pot */
-    return sb.from('progressive').update({ value: seed, armed: false }).eq('id', 1);
-  })
-  .then(function(r) {
-    if (r === null) return;
-    if (r && r.error) _toast('Reset error: ' + r.error.message);
-    else _toast('Jackpot triggered! Pot reset to $' + seed.toFixed(2));
-  })
-  .catch(function(err) {
-    _toast('Trigger error: ' + (err.message || 'unknown'));
-  });
-};
+    _updateLastSpin();
+    if (_shouldRandomTrigger()) return 'random';
+    return _forceArmed;
+  }
 
-window._op_sendMsg = function() {
-  var sb = _getClient(); if (!sb) return;
-  var msg  = (document.getElementById('msg-text').value || '').trim();
-  var type = document.getElementById('msg-type').value || 'general';
-  if (!msg) return _toast('Enter a message first');
-  /* created_at omitted — Supabase DEFAULT now() handles it */
-  sb.from('broadcast_messages').insert({ message: msg, type: type })
-    .then(function(r) {
-      if (r.error) _toast('Error: ' + r.error.message);
-      else {
-        _toast('Message broadcast!');
-        document.getElementById('msg-text').value = '';
-      }
-    });
-};
+  function claimForce(onResult) { _claimForceWin(onResult); }
 
-window._op_loadHist = function() {
-  var sb = _getClient(); if (!sb) return;
-  var list = document.getElementById('history-list');
-  if (!list) return;
-  list.innerHTML = '<div style="color:var(--dim);font-size:11px;text-align:center;padding:20px">Loading…</div>';
-  sb.from('progressive_hits').select('*').order('created_at', { ascending: false }).limit(20)
-    .then(function(r) {
-      if (r.error) {
-        list.innerHTML = '<div style="color:#ff4444;font-size:11px;text-align:center;padding:20px">Error: ' + r.error.message + '</div>';
-        return;
-      }
-      if (!r.data || !r.data.length) {
-        list.innerHTML = '<div style="color:var(--dim);font-size:11px;text-align:center;padding:20px">No hits recorded yet</div>';
-        return;
-      }
-      list.innerHTML = r.data.map(function(h) {
-        var d      = h.created_at ? new Date(h.created_at).toLocaleString() : '—';
-        var player = h.player_label || (h.player_session ? _resolvePlayerLabel(h.player_session) : '—');
-        var game   = h.game_title || h.game_id || 'Unknown';
-        return '<div class="hit-row">' +
-          '<div class="hit-game">'   + game   + '</div>' +
-          '<div class="hit-player">' + player + '</div>' +
-          '<div class="hit-amt">$'   + Number(h.amount || 0).toFixed(2) + '</div>' +
-          '<div class="hit-meta">'   + d      + '</div>' +
-          '</div>';
-      }).join('');
-    })
-    .catch(function(err) {
-      list.innerHTML = '<div style="color:#ff4444;font-size:11px;text-align:center;padding:20px">Error: ' + (err.message || 'unknown') + '</div>';
-    });
-};
+  function hit(info) {
+    var hitAmt  = parseFloat(_localValue.toFixed(2));
+    _localValue = _seed;
+    _notifyValue();
+    _justWon = true;
+    setTimeout(function() { _justWon = false; }, 5000);
+    if (_connected && _client) {
+      _client.rpc('progressive_hit', { reset_to: _seed });
+      _client.from('progressive_hits').insert(_buildHitRecord(hitAmt, info));
+      setTimeout(function() { _fetchRow(null); }, 1000);
+    }
+    return hitAmt;
+  }
 
-window._op_loadStats = function() {
-  var sb = _getClient(); if (!sb) return;
-  sb.from('progressive_hits').select('amount')
-    .then(function(r) {
-      if (r.error || !r.data) return;
-      var hits  = r.data.length;
-      var total = r.data.reduce(function(a, h) { return a + Number(h.amount || 0); }, 0);
-      var avg   = hits ? total / hits : 0;
-      var max   = hits ? Math.max.apply(null, r.data.map(function(h) { return Number(h.amount || 0); })) : 0;
-      var se = document.getElementById('stat-hits');  if (se) se.textContent = hits;
-      var st = document.getElementById('stat-total'); if (st) st.textContent = '$' + total.toFixed(0);
-      var sa = document.getElementById('stat-avg');   if (sa) sa.textContent = '$' + avg.toFixed(0);
-      var sm = document.getElementById('stat-max');   if (sm) sm.textContent = '$' + max.toFixed(0);
-    });
-};
+  function mustHit()          { return _localValue >= _ceiling; }
+  function getDisplay()       { return _fmtMoney(_localValue); }
+  function getValue()         { return _localValue; }
+  function isConnected()      { return _connected; }
+  function isForceArmed()     { return _forceArmed; }
+  function getTriggerOdds()   { return _triggerOdds; }
+  function getPresenceCount() { return _presenceCount; }
+  function getSessionKey()    { return _sessionKey; }
+
+  function onChange(fn)         { _valueListeners.push(fn);    fn(_localValue); }
+  function onPresenceChange(fn) { _presenceListeners.push(fn); fn(_presenceCount); }
+  function onMessage(fn)        { _messageListeners.push(fn); }
+  function onForceWin(fn)       { _onForceWin    = fn; }
+  function onForceNotify(fn)    { _onForceNotify = fn; }
+
+  return {
+    init:             init,
+    contribute:       contribute,
+    claimForce:       claimForce,
+    hit:              hit,
+    mustHit:          mustHit,
+    getDisplay:       getDisplay,
+    getValue:         getValue,
+    isConnected:      isConnected,
+    isForceArmed:     isForceArmed,
+    getTriggerOdds:   getTriggerOdds,
+    getPresenceCount: getPresenceCount,
+    getSessionKey:    getSessionKey,
+    onChange:         onChange,
+    onPresenceChange: onPresenceChange,
+    onMessage:        onMessage,
+    onForceWin:       onForceWin,
+    onForceNotify:    onForceNotify
+  };
+}());
