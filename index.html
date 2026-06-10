@@ -447,6 +447,69 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
 #ls-player-badge.show { display: flex; }
 #ls-player-badge:hover { border-color: #ffd700; color: #ffd700; }
 
+
+/* ── OPERATOR MESSAGE BOARD ── */
+#op-msg-board {
+  display: none; position: fixed; inset: 0; z-index: 8000;
+  background: rgba(0,0,0,0.85); overflow-y: auto;
+  padding: 16px; box-sizing: border-box;
+}
+#op-msg-board.show { display: block; }
+.op-msg-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.op-msg-title {
+  font-size: 13px; font-weight: 900; color: #ffd700;
+  letter-spacing: 2px;
+}
+.op-msg-close-all {
+  background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 6px; color: #fff; font-size: 11px; padding: 4px 10px;
+  cursor: pointer; letter-spacing: 1px;
+}
+.op-msg-card {
+  background: rgba(20,10,40,0.95); border: 1px solid rgba(255,215,0,0.25);
+  border-radius: 10px; padding: 12px 14px; margin-bottom: 10px;
+  position: relative;
+}
+.op-msg-card.alert  { border-color: rgba(255,100,0,0.5); }
+.op-msg-card.info   { border-color: rgba(0,200,255,0.4); }
+.op-msg-card.special{ border-color: rgba(200,0,255,0.4); }
+.op-msg-card-type {
+  font-size: 8px; letter-spacing: 2px; color: #ffd700;
+  margin-bottom: 4px; text-transform: uppercase;
+}
+.op-msg-card-text {
+  font-size: 13px; color: #f0e0ff; line-height: 1.5;
+  padding-right: 24px;
+}
+.op-msg-card-time {
+  font-size: 9px; color: rgba(255,255,255,0.3);
+  margin-top: 6px; letter-spacing: 1px;
+}
+.op-msg-card-dismiss {
+  position: absolute; top: 10px; right: 10px;
+  background: none; border: none; color: rgba(255,255,255,0.4);
+  font-size: 16px; cursor: pointer; line-height: 1;
+}
+.op-msg-card-dismiss:hover { color: #ff4444; }
+#op-msg-bell {
+  position: fixed; bottom: 80px; right: 12px; z-index: 7999;
+  background: #1a0035; border: 2px solid #ffd700;
+  border-radius: 50%; width: 44px; height: 44px;
+  display: none; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 20px;
+  box-shadow: 0 0 12px rgba(255,215,0,0.4);
+}
+#op-msg-bell.show { display: flex; }
+#op-msg-bell-count {
+  position: absolute; top: -4px; right: -4px;
+  background: #ff4400; color: #fff; border-radius: 50%;
+  width: 18px; height: 18px; font-size: 10px; font-weight: 900;
+  display: flex; align-items: center; justify-content: center;
+}
+
 </style>
 </head>
 <body>
@@ -957,6 +1020,146 @@ loadSupabase();
       });
     }
   });
+}());
+
+</script>
+<script>
+
+/* ── OPERATOR MESSAGE BOARD ── */
+(function() {
+  var DISMISSED_KEY = 'tsgc_dismissed_msgs';
+  var _msgs         = [];   /* all loaded messages */
+  var _dismissed    = {};   /* id -> true */
+
+  function _loadDismissed() {
+    try {
+      var d = JSON.parse(localStorage.getItem(DISMISSED_KEY) || '{}');
+      _dismissed = d;
+    } catch(e) { _dismissed = {}; }
+  }
+
+  function _saveDismissed() {
+    try { localStorage.setItem(DISMISSED_KEY, JSON.stringify(_dismissed)); } catch(e) {}
+  }
+
+  function _fmtTime(ts) {
+    if (!ts) return '';
+    try {
+      var d = new Date(ts);
+      return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+    } catch(e) { return ''; }
+  }
+
+  function _typeLabel(t) {
+    var map = { general:'&#9733; GENERAL', alert:'&#9888; ALERT',
+                info:'&#8505; INFO', special:'&#10024; SPECIAL' };
+    return map[t] || '&#9733; MESSAGE';
+  }
+
+  function _renderBoard() {
+    var list = document.getElementById('op-msg-list');
+    if (!list) return;
+    var visible = _msgs.filter(function(m) { return !_dismissed[m.id]; });
+    if (visible.length === 0) {
+      list.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.3);padding:20px;font-size:12px">No messages</div>';
+    } else {
+      list.innerHTML = visible.map(function(m) {
+        return '<div class="op-msg-card ' + (m.type||'general') + '" id="msg-card-' + m.id + '">' +
+          '<div class="op-msg-card-type">' + _typeLabel(m.type) + '</div>' +
+          '<div class="op-msg-card-text">' + (m.message||'').replace(/</g,'&lt;') + '</div>' +
+          '<div class="op-msg-card-time">' + _fmtTime(m.created_at) + '</div>' +
+          '<button class="op-msg-card-dismiss" onclick="dismissMsg(' + m.id + ')">&#10005;</button>' +
+          '</div>';
+      }).join('');
+    }
+    /* Update bell */
+    _updateBell(visible.length);
+  }
+
+  function _updateBell(count) {
+    var bell  = document.getElementById('op-msg-bell');
+    var badge = document.getElementById('op-msg-bell-count');
+    if (bell)  bell.classList.toggle('show', count > 0);
+    if (badge) {
+      badge.style.display = count > 0 ? 'flex' : 'none';
+      badge.textContent   = count;
+    }
+  }
+
+  window.dismissMsg = function(id) {
+    _dismissed[id] = true;
+    _saveDismissed();
+    _renderBoard();
+    var board = document.getElementById('op-msg-board');
+    /* Close board if no more messages */
+    var visible = _msgs.filter(function(m) { return !_dismissed[m.id]; });
+    if (visible.length === 0 && board) board.classList.remove('show');
+  };
+
+  window.openMessageBoard  = function() {
+    var b = document.getElementById('op-msg-board');
+    if (b) b.classList.add('show');
+  };
+  window.closeMessageBoard = function() {
+    var b = document.getElementById('op-msg-board');
+    if (b) b.classList.remove('show');
+  };
+
+  /* Load existing messages from DB */
+  function _loadMessages(client) {
+    client.from('broadcast_messages')
+      .select('*')
+      .not('type', 'in', '("force_local_ball","restore_wide_ball")')
+      .order('created_at', { ascending: false })
+      .then(function(res) {
+        if (res.error || !res.data) return;
+        _msgs = res.data;
+        _renderBoard();
+      });
+  }
+
+  /* Subscribe to new messages */
+  function _subscribeMessages(client) {
+    client.channel('lobby-messages')
+      .on('postgres_changes', {
+        event: 'INSERT', schema: 'public', table: 'broadcast_messages'
+      }, function(p) {
+        if (!p.new) return;
+        var t = (p.new.type || '').toLowerCase();
+        if (t === 'force_local_ball' || t === 'restore_wide_ball') return;
+        /* Prepend new message */
+        _msgs.unshift(p.new);
+        _renderBoard();
+        /* Auto-open board for new messages */
+        var board = document.getElementById('op-msg-board');
+        if (board) board.classList.add('show');
+      })
+      .subscribe();
+  }
+
+  /* Init — wait for Supabase to be ready */
+  function _init() {
+    if (typeof window.supabase === 'undefined') {
+      setTimeout(_init, 300);
+      return;
+    }
+    var SUPABASE_URL_L      = 'https://gdmmoeggkqsvqnqyrubx.supabase.co';
+    var SUPABASE_ANON_KEY_L = 'sb_publishable_NGsKBAUUsVUvD5XKTblIdw_aBDPldSd';
+    try {
+      /* Re-use existing client if available, otherwise create one */
+      var client = window._lobbySupabaseClient ||
+        window.supabase.createClient(SUPABASE_URL_L, SUPABASE_ANON_KEY_L);
+      _loadDismissed();
+      _loadMessages(client);
+      _subscribeMessages(client);
+    } catch(e) { console.warn('Message board init error:', e); }
+  }
+
+  /* Remove old single-message banner system if present */
+  var old = document.getElementById('op-message-banner');
+  if (old) old.style.display = 'none';
+
+  _init();
 }());
 
 </script>
