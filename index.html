@@ -114,6 +114,8 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
   background:radial-gradient(ellipse at center top,rgba(255,50,0,.12) 0%,transparent 60%);pointer-events:none;}
 .card:nth-child(3)::before{content:'';position:absolute;inset:0;
   background:radial-gradient(ellipse at center top,rgba(180,0,255,.12) 0%,transparent 60%);pointer-events:none;}
+.card:nth-child(5)::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at center top,rgba(255,68,170,.12) 0%,transparent 60%);pointer-events:none;}
 
 .card-top{display:flex;justify-content:space-between;align-items:flex-start;width:100%;margin-bottom:6px;}
 .card-badge{
@@ -563,8 +565,8 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
     <img src="assets/images/lobby_banner.jpg" alt="The Turrelle Sisters Gold Coins Casino">
     <div id="marquee-wrap">
       <div id="marquee">
-        <span>&#9733; Welcome to The Turrelle Sisters Gold Coins Casino &#9733; Play Now &#9733; Progressive Jackpot Live &#9733; All 4 Games Connected &#9733;</span>
-        <span>&#9733; Welcome to The Turrelle Sisters Gold Coins Casino &#9733; Play Now &#9733; Progressive Jackpot Live &#9733; All 4 Games Connected &#9733;</span>
+        <span>&#9733; Welcome to The Turrelle Sisters Gold Coins Casino &#9733; Play Now &#9733; Progressive Jackpot Live &#9733; All 5 Games Connected &#9733;</span>
+        <span>&#9733; Welcome to The Turrelle Sisters Gold Coins Casino &#9733; Play Now &#9733; Progressive Jackpot Live &#9733; All 5 Games Connected &#9733;</span>
       </div>
     </div>
   </div>
@@ -660,6 +662,24 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
         </button>
       </div>
 
+      <!-- CARD 5: Poke-Her Video Poker -->
+      <div class="card">
+        <div class="card-top">
+          <div style="font-size:9px;color:var(--dim);letter-spacing:1px">THE TURRELLE SISTERS</div>
+          <div class="card-badge" style="border-color:#ff44aa;color:#ff44aa">POKER</div>
+        </div>
+        <div class="card-img-wrap" style="border-color:#ff44aa;color:#ff44aa;box-shadow:0 0 20px #ff44aa">
+          <img src="assets/images/pokeher_splash.jpg" alt="Poke-Her Video Poker">
+        </div>
+        <div class="card-name" style="color:#ff44aa;text-shadow:0 0 10px #ff44aa">Poke&#x2011;Her<br>Video Poker</div>
+        <div class="card-desc">Jacks or Better &bull; 1&ndash;5 Credits &bull; Royal Flush Jackpot</div>
+        <div class="card-jp">&#9733; Progressive Jackpot: <span class="prog-inline">$500.00</span></div>
+        <button class="play-btn" id="btn-ph" style="background:linear-gradient(135deg,#4a0028,#aa0066,#6a0040);border:1.5px solid #ff44aa;box-shadow:0 4px 20px rgba(255,68,170,.5);color:#fff;"
+          onclick="launchGame('https://theturrellesisters.github.io/turrelle-pokeher/')">
+          PLAY NOW
+        </button>
+      </div>
+
     </div><!-- end carousel -->
   </div>
 
@@ -668,6 +688,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
     <div class="dot" id="dot-1"></div>
     <div class="dot" id="dot-2"></div>
     <div class="dot" id="dot-3"></div>
+    <div class="dot" id="dot-4"></div>
   </div>
 
   <div id="footer">STRAY-PUP LLC &bull; THE TURRELLE SISTERS LLC &bull; FOR ENTERTAINMENT ONLY &bull; v2.4</div>
@@ -678,7 +699,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
   <video id="jp-cel-video" autoplay loop muted playsinline
     src="assets/videos/josie_dance.mp4"></video>
   <div id="jp-cel-title">PROGRESSIVE JACKPOT HIT!</div>
-  <div id="jp-cel-amt" id="jp-cel-amt">$0.00</div>
+  <div id="jp-cel-amt">$0.00</div>
   <button id="jp-cel-close" onclick="document.getElementById('jp-celebrate').classList.remove('show')">
     CONTINUE
   </button>
@@ -838,7 +859,7 @@ function launchGame(url) {
 var _car=document.getElementById('carousel');
 if(_car)_car.addEventListener('scroll',function(){
   var idx=Math.round(_car.scrollLeft/_car.offsetWidth);
-  for(var i=0;i<4;i++){var d=document.getElementById('dot-'+i);if(d)d.classList.toggle('active',i===idx);}
+  for(var i=0;i<5;i++){var d=document.getElementById('dot-'+i);if(d)d.classList.toggle('active',i===idx);}
 },{passive:true});
 
 /* ── Progressive display ── */
@@ -861,14 +882,14 @@ function loadSupabase(){
   s.onload=function(){
     try{
       var c=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+      window._lobbySupabaseClient=c; /* shared — reused by message board */
       c.from('progressive').select('value,seed').eq('id',1).single().then(function(r){
         if(!r.error&&r.data){updateProgDisplay(r.data.value);
           var ps=document.getElementById('prog-seed');if(ps)ps.textContent='Seed: '+fmtProg(r.data.seed);}
       });
       c.channel('lp').on('postgres_changes',{event:'UPDATE',schema:'public',table:'progressive',filter:'id=eq.1'},
         function(p){if(p.new&&p.new.value!=null)updateProgDisplay(p.new.value);}).subscribe();
-      try{c.channel('lm').on('postgres_changes',{event:'INSERT',schema:'public',table:'broadcast_messages'},
-        function(p){if(p.new&&window._queueOpMessage)window._queueOpMessage(p.new);}).subscribe();}catch(e){}
+      /* broadcast_messages handled by message board script below — no duplicate channel */
       var _v=['assets/videos/josie_dance.mp4','assets/videos/sasha_dance.mp4','assets/videos/sasha_alt.mp4'];
       c.channel('lh').on('postgres_changes',{event:'INSERT',schema:'public',table:'progressive_hits'},
         function(p){if(!p.new)return;
@@ -883,7 +904,7 @@ function loadSupabase(){
 
 /* ── Greeter video ── */
 var _gv=document.getElementById('greeter-vid');
-if(_gv){var _gvs=['assets/videos/sasha_dance.mp4','assets/videos/sasha_alt.mp4'],_gi=0;
+if(_gv){var _gvs=['assets/videos/sasha_dance.mp4','assets/videos/sasha_alt.mp4','assets/videos/josie_dance.mp4'],_gi=0;
   _gv.addEventListener('ended',function(){_gi=(_gi+1)%_gvs.length;_gv.src=_gvs[_gi];_gv.play();});}
 
 if('serviceWorker' in navigator)navigator.serviceWorker.register('service-worker.js').catch(function(){});
@@ -1011,15 +1032,10 @@ loadSupabase();
     }
 
     if (ageConfirmed && savedNick) {
-      /* Returning player — skip straight past age gate */
+      /* Returning player — skip splash entirely on page load */
       showBadge(savedNick);
       window._playerNickname = savedNick;
-      var nickSection = document.getElementById('ls-nickname-section');
-      var inp = document.getElementById('ls-nick-input');
-      var btnEnter = document.getElementById('ls-btn-enter');
-      if (nickSection) nickSection.classList.add('show');
-      if (inp) inp.value = savedNick;
-      if (btnEnter) btnEnter.textContent = 'ENTER CASINO — ' + savedNick;
+      dismissSplash(); /* auto-dismiss — no click required */
       return;
     }
 
