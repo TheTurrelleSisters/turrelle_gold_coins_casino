@@ -1,13 +1,23 @@
 /*
  * service-worker.js — Gold Coins Casino Lobby
- * Gold Coins Casino System v2.4
+ * Gold Coins Casino System v3.3
  * AUTO-UPDATE: Detects new version, clears old cache, reloads all clients silently.
  * Bump CACHE_VER on every release — everything else is automatic.
  */
-var CACHE_VER = 'lobby-v3.2';
+var CACHE_VER = 'lobby-v3.3';
 
 /* Files to pre-cache on install */
-var CACHE_URLS = ['./index.html','./manifest.json','./assets/images/lobby_banner.jpg','./assets/images/straypups_splash.jpg','./assets/images/turrelle_splash.jpg','./icons/icon-192x192.png','./icons/icon-512x512.png'];
+var CACHE_URLS = [
+  './index.html',
+  './manifest.json',
+  './assets/images/lobby_banner.jpg',
+  './assets/images/straypups_splash.jpg',
+  './assets/images/turrelle_splash.jpg',
+  './assets/images/pokeher_splash.jpg',
+  './assets/maxine_splash.jpg',
+  './icons/icon-192x192.png',
+  './icons/icon-512x512.png'
+];
 
 /* ── INSTALL: cache files + skip waiting immediately ── */
 self.addEventListener('install', function(e) {
@@ -19,7 +29,6 @@ self.addEventListener('install', function(e) {
         });
       })
       .then(function() {
-        /* Skip waiting — activate immediately without waiting for old SW to die */
         return self.skipWaiting();
       })
   );
@@ -40,11 +49,9 @@ self.addEventListener('activate', function(e) {
         );
       })
       .then(function() {
-        /* Claim all open tabs immediately */
         return self.clients.claim();
       })
       .then(function() {
-        /* Tell all open clients to reload so they get fresh files */
         return self.clients.matchAll({ type: 'window' }).then(function(clients) {
           clients.forEach(function(client) {
             if (client.url && 'navigate' in client) {
@@ -58,26 +65,32 @@ self.addEventListener('activate', function(e) {
 
 /* ── FETCH: network-first for JS/HTML, cache-first for assets ── */
 self.addEventListener('fetch', function(e) {
+  /* Never intercept non-GET requests — cache.put() only supports GET */
+  if (e.request.method !== 'GET') return;
+
   var url = e.request.url;
 
-  /* Always go to network for JS, HTML, and API calls */
-  if (url.indexOf('.js') !== -1 ||
-      url.indexOf('.html') !== -1 ||
-      url.indexOf('supabase.co') !== -1 ||
+  /* Never cache Supabase API responses */
+  if (url.indexOf('supabase.co') !== -1) return;
+
+  /* Network-first for JS, HTML, CDN */
+  if (url.indexOf('.js')          !== -1 ||
+      url.indexOf('.html')        !== -1 ||
       url.indexOf('jsdelivr.net') !== -1 ||
-      url.indexOf('cdn.') !== -1) {
+      url.indexOf('cdn.')         !== -1) {
     e.respondWith(
       fetch(e.request)
         .then(function(resp) {
-          /* Update cache with fresh copy */
-          var clone = resp.clone();
-          caches.open(CACHE_VER).then(function(cache) {
-            cache.put(e.request, clone);
-          });
+          /* Skip cache.put for 206 Partial Content (range requests) */
+          if (resp && resp.status !== 206) {
+            var clone = resp.clone();
+            caches.open(CACHE_VER).then(function(cache) {
+              cache.put(e.request, clone);
+            });
+          }
           return resp;
         })
         .catch(function() {
-          /* Network failed — serve from cache as fallback */
           return caches.match(e.request);
         })
     );
@@ -88,10 +101,12 @@ self.addEventListener('fetch', function(e) {
   e.respondWith(
     caches.match(e.request).then(function(cached) {
       return cached || fetch(e.request).then(function(resp) {
-        var clone = resp.clone();
-        caches.open(CACHE_VER).then(function(cache) {
-          cache.put(e.request, clone);
-        });
+        if (resp && resp.status !== 206) {
+          var clone = resp.clone();
+          caches.open(CACHE_VER).then(function(cache) {
+            cache.put(e.request, clone);
+          });
+        }
         return resp;
       });
     })
