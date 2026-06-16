@@ -124,6 +124,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
 .badge-1d {border-color:#0088ff;color:#0088ff;}
 .badge-5d {border-color:#ff3300;color:#ff3300;}
 .badge-sis{border-color:#cc00ff;color:#cc00ff;}
+.badge-mwc{border-color:#ff3377;color:#ff3377;}
 
 .card-img-wrap{
   width:100%;flex:1;min-height:0;
@@ -562,8 +563,8 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
     <img src="assets/images/lobby_banner.jpg" alt="The Turrelle Sisters Gold Coins Casino">
     <div id="marquee-wrap">
       <div id="marquee">
-        <span>&#9733; Welcome to The Turrelle Sisters Gold Coins Casino &#9733; Play Now &#9733; Progressive Jackpot Live &#9733; All 3 Games Connected &#9733;</span>
-        <span>&#9733; Welcome to The Turrelle Sisters Gold Coins Casino &#9733; Play Now &#9733; Progressive Jackpot Live &#9733; All 3 Games Connected &#9733;</span>
+        <span>&#9733; Welcome to The Turrelle Sisters Gold Coins Casino &#9733; Play Now &#9733; Progressive Jackpot Live &#9733; All 4 Games Connected &#9733;</span>
+        <span>&#9733; Welcome to The Turrelle Sisters Gold Coins Casino &#9733; Play Now &#9733; Progressive Jackpot Live &#9733; All 4 Games Connected &#9733;</span>
       </div>
     </div>
   </div>
@@ -641,6 +642,24 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
         </button>
       </div>
 
+      <!-- CARD 4: Maxine's Wild Cherries -->
+      <div class="card">
+        <div class="card-top">
+          <div style="font-size:9px;color:var(--dim);letter-spacing:1px">MAXINE'S WILD CHERRIES</div>
+          <div class="card-badge badge-mwc">$2</div>
+        </div>
+        <div class="card-img-wrap">
+          <img src="assets/images/maxine_splash.jpg" alt="Maxine's Wild Cherries">
+        </div>
+        <div class="card-name">Maxine's<br>Wild Cherries</div>
+        <div class="card-desc">3-Reel &bull; 1 Payline &bull; $2&ndash;$6 Bet &bull; Spin to Win Bonus</div>
+        <div class="card-jp">&#9733; Progressive Jackpot: <span class="prog-inline">$500.00</span></div>
+        <button class="play-btn" id="btn-mwc"
+          onclick="launchGame('https://theturrellesisters.github.io/Maxines_Wild_Cherries/index.html')">
+          PLAY NOW
+        </button>
+      </div>
+
     </div><!-- end carousel -->
   </div>
 
@@ -648,6 +667,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
     <div class="dot active" id="dot-0"></div>
     <div class="dot" id="dot-1"></div>
     <div class="dot" id="dot-2"></div>
+    <div class="dot" id="dot-3"></div>
   </div>
 
   <div id="footer">STRAY-PUP LLC &bull; THE TURRELLE SISTERS LLC &bull; FOR ENTERTAINMENT ONLY &bull; v2.4</div>
@@ -818,7 +838,7 @@ function launchGame(url) {
 var _car=document.getElementById('carousel');
 if(_car)_car.addEventListener('scroll',function(){
   var idx=Math.round(_car.scrollLeft/_car.offsetWidth);
-  for(var i=0;i<3;i++){var d=document.getElementById('dot-'+i);if(d)d.classList.toggle('active',i===idx);}
+  for(var i=0;i<4;i++){var d=document.getElementById('dot-'+i);if(d)d.classList.toggle('active',i===idx);}
 },{passive:true});
 
 /* ── Progressive display ── */
