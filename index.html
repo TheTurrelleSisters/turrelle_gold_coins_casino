@@ -179,16 +179,269 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
   color:#fff;border:1.5px solid #cc00ff;
   box-shadow:0 4px 20px rgba(200,0,255,.5);}
 
-/* ── DOTS ── */
-#dots{display:flex;justify-content:center;gap:8px;padding:8px 0 10px;flex-shrink:0;}
+/* ── DOTS (carousel position indicators — kept inside carousel) ── */
+#dots{display:flex;justify-content:center;gap:8px;padding:6px 0 4px;flex-shrink:0;}
 .dot{width:7px;height:7px;border-radius:50%;background:#333;
   transition:background .2s,transform .2s,box-shadow .2s;}
-.dot.active{background:var(--gold);transform:scale(1.5);
-  box-shadow:0 0 6px var(--gold);}
+.dot.active{background:var(--gold);transform:scale(1.5);box-shadow:0 0 6px var(--gold);}
 
-/* ── FOOTER ── */
-#footer{flex-shrink:0;text-align:center;padding:3px 0 env(safe-area-inset-bottom,6px);
-  font-size:7px;color:#441133;letter-spacing:2px;font-family:Arial,sans-serif;font-weight:normal;}
+/* ── TAB BAR ── */
+#tab-bar{
+  flex-shrink:0;
+  height:56px;
+  background:rgba(8,0,12,.97);
+  border-top:1px solid rgba(255,215,0,.12);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  display:flex;align-items:stretch;
+  position:relative;z-index:200;
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+.tb-tab{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:2px;
+  cursor:pointer;padding:6px 0;
+  -webkit-tap-highlight-color:transparent;
+  position:relative;transition:opacity .12s;
+}
+.tb-tab:active{opacity:.6;}
+.tb-icon{font-size:20px;line-height:1;transition:transform .18s;}
+.tb-label{
+  font-size:8px;letter-spacing:1.5px;color:#554466;
+  text-transform:uppercase;font-family:Arial,sans-serif;font-weight:700;
+  transition:color .18s;
+}
+.tb-tab.active .tb-label{color:var(--gold);}
+.tb-tab.active .tb-icon{transform:scale(1.12);}
+.tb-pip{
+  position:absolute;top:7px;right:calc(50% - 16px);
+  width:8px;height:8px;border-radius:50%;
+  background:#ff3300;box-shadow:0 0 6px #ff3300;
+  display:none;
+}
+.tb-pip.show{display:block;}
+
+/* ── WALLET DRAWER (slides up over lobby) ── */
+#wallet-drawer{
+  position:absolute;bottom:56px;left:0;right:0;
+  height:calc(100% - 56px);
+  background:#111214;
+  transform:translateY(100%);
+  transition:transform .38s cubic-bezier(.32,.72,0,1);
+  z-index:150;display:flex;flex-direction:column;overflow:hidden;
+  bottom:0;top:0;margin-bottom:56px;
+}
+#wallet-drawer.open{transform:translateY(0);}
+
+.wd-handle{flex-shrink:0;padding:10px 0 0;display:flex;justify-content:center;}
+.wd-handle-pill{width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,.14);}
+
+.wd-header{
+  flex-shrink:0;padding:12px 20px 0;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.wd-header-title{
+  font-size:11px;letter-spacing:2px;color:#8a8f98;
+  text-transform:uppercase;font-family:Arial,sans-serif;font-weight:700;
+}
+.wd-close{
+  width:30px;height:30px;border-radius:50%;
+  background:#1c1e21;border:none;
+  color:#8a8f98;font-size:16px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-family:Arial,sans-serif;
+}
+.wd-close:active{background:#242628;}
+
+/* Balance hero */
+.wd-bal-hero{flex-shrink:0;padding:22px 20px 16px;text-align:center;}
+.wd-bal-lbl{
+  font-size:10px;letter-spacing:2px;color:#8a8f98;
+  text-transform:uppercase;font-family:Arial,sans-serif;font-weight:700;margin-bottom:6px;
+}
+.wd-bal-amt{
+  font-size:clamp(42px,12vw,54px);font-weight:900;color:#f5c842;
+  line-height:1;letter-spacing:-1px;
+  transition:transform .15s;
+}
+.wd-bal-amt.bump{transform:scale(1.08);}
+.wd-bal-nick{
+  font-size:11px;color:#8a8f98;margin-top:6px;
+  font-family:Arial,sans-serif;font-weight:400;letter-spacing:1px;
+}
+
+/* Action buttons */
+.wd-actions{flex-shrink:0;padding:0 20px 18px;display:flex;gap:12px;}
+.wd-action{
+  flex:1;padding:14px 0;border-radius:12px;border:none;
+  font-size:9px;font-weight:900;letter-spacing:1.5px;
+  text-transform:uppercase;cursor:pointer;
+  font-family:'Arial Black',Arial,sans-serif;
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+  transition:filter .12s,transform .1s;
+}
+.wd-action:active{transform:scale(.95);filter:brightness(.85);}
+.wd-action-icon{font-size:20px;}
+.wd-action-lbl{font-size:9px;letter-spacing:1.5px;}
+#wd-btn-genvoucher{background:rgba(29,185,84,.12);color:#1db954;border:1.5px solid rgba(29,185,84,.28);}
+
+/* ── VOUCHER LIST ── */
+.wd-voucher-empty{text-align:center;padding:28px 0 10px;color:#8a8f98;font-size:12px;font-family:Arial,sans-serif;font-weight:400;line-height:1.8;}
+.wd-voucher{
+  background:#1c1e21;border-radius:12px;padding:14px 16px;
+  margin-bottom:10px;display:flex;align-items:center;gap:14px;
+  cursor:default;transition:background .12s;
+}
+.wd-voucher-icon{
+  width:42px;height:42px;border-radius:10px;flex-shrink:0;
+  background:rgba(29,185,84,.12);
+  display:flex;align-items:center;justify-content:center;font-size:20px;
+}
+.wd-voucher-body{flex:1;min-width:0;}
+.wd-voucher-game{font-size:10px;color:#8a8f98;font-family:Arial,sans-serif;font-weight:400;letter-spacing:1px;text-transform:uppercase;margin-bottom:2px;}
+.wd-voucher-date{font-size:10px;color:#555a63;font-family:Arial,sans-serif;font-weight:400;}
+.wd-voucher-amt{font-size:16px;font-weight:900;color:#1db954;font-family:'Arial Black',Arial,sans-serif;white-space:nowrap;}
+
+/* Divider */
+.wd-div{flex-shrink:0;height:1px;background:rgba(255,255,255,.07);margin:0 20px;}
+
+/* History */
+.wd-history{flex:1;overflow-y:auto;padding:14px 20px 20px;}
+.wd-hist-lbl{
+  font-size:10px;letter-spacing:2px;color:#8a8f98;
+  text-transform:uppercase;font-family:Arial,sans-serif;font-weight:700;margin-bottom:12px;
+}
+.wd-tx{display:flex;align-items:center;gap:14px;padding:13px 0;border-bottom:1px solid rgba(255,255,255,.07);}
+.wd-tx:last-child{border-bottom:none;}
+.wd-tx-icon{width:38px;height:38px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px;}
+.wd-tx-icon.ins{background:rgba(29,185,84,.12);}
+.wd-tx-icon.out{background:rgba(232,64,58,.1);}
+.wd-tx-body{flex:1;min-width:0;}
+.wd-tx-name{font-size:13px;color:#f0f0f0;font-family:Arial,sans-serif;font-weight:700;margin-bottom:2px;}
+.wd-tx-time{font-size:10px;color:#8a8f98;font-family:Arial,sans-serif;font-weight:400;}
+.wd-tx-amt{font-size:14px;font-weight:900;font-family:'Arial Black',Arial,sans-serif;}
+.wd-tx-amt.ins{color:#1db954;}
+.wd-tx-amt.out{color:#e8403a;}
+.wd-history::-webkit-scrollbar{width:3px;}
+.wd-history::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px;}
+.wd-empty{text-align:center;padding:28px 0;color:#8a8f98;font-size:12px;font-family:Arial,sans-serif;font-weight:400;line-height:1.8;}
+
+/* Insert panel (slides in from right within drawer) */
+#wd-insert-panel,#wd-cashout-panel{
+  position:absolute;inset:0;
+  background:#111214;
+  transform:translateX(100%);
+  transition:transform .3s cubic-bezier(.32,.72,0,1);
+  display:flex;flex-direction:column;z-index:10;
+}
+#wd-insert-panel.open,#wd-cashout-panel.open{transform:translateX(0);}
+
+.wp-header{flex-shrink:0;padding:16px 20px 0;display:flex;align-items:center;gap:12px;}
+.wp-back{
+  width:34px;height:34px;border-radius:50%;
+  background:#1c1e21;border:none;color:#f0f0f0;
+  font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-family:Arial,sans-serif;flex-shrink:0;
+}
+.wp-back:active{background:#242628;}
+.wp-title{font-size:16px;font-weight:900;color:#f0f0f0;letter-spacing:.5px;}
+
+.wp-body{flex:1;padding:24px 20px 20px;overflow-y:auto;}
+
+/* Numpad amount display */
+.wp-amt-wrap{text-align:center;margin-bottom:24px;}
+.wp-amt-pre{font-size:28px;color:#8a8f98;font-family:Arial,sans-serif;font-weight:300;}
+.wp-amt-val{font-size:clamp(44px,13vw,56px);font-weight:900;color:#f0f0f0;font-family:'Arial Black',Arial,sans-serif;letter-spacing:-2px;line-height:1;}
+.wp-amt-cursor{display:inline-block;width:3px;height:44px;background:#1db954;margin-left:3px;vertical-align:middle;animation:cur-blink .9s step-end infinite;}
+@keyframes cur-blink{0%,100%{opacity:1}50%{opacity:0}}
+.wp-amt-cap{font-size:10px;color:#8a8f98;letter-spacing:1px;font-family:Arial,sans-serif;margin-top:4px;}
+.wp-amt-err{font-size:11px;color:#e8403a;margin-top:6px;letter-spacing:.5px;font-family:Arial,sans-serif;font-weight:600;display:none;}
+.wp-amt-err.show{display:block;}
+
+/* Numpad grid */
+.wp-numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;}
+.wp-key{
+  background:#1c1e21;border:none;border-radius:14px;
+  padding:16px 0;font-size:20px;font-weight:700;color:#f0f0f0;
+  cursor:pointer;font-family:Arial,sans-serif;
+  transition:background .1s,transform .08s;
+}
+.wp-key:active{background:#242628;transform:scale(.93);}
+.wp-key.del{font-size:17px;color:#8a8f98;}
+
+.wp-confirm{
+  width:100%;padding:15px;border-radius:14px;border:none;
+  font-size:14px;font-weight:900;letter-spacing:2px;
+  text-transform:uppercase;cursor:pointer;
+  font-family:'Arial Black',Arial,sans-serif;
+  transition:filter .12s,transform .1s;
+}
+.wp-confirm:active{transform:scale(.97);filter:brightness(.88);}
+.wp-confirm.green{background:#1db954;color:#fff;box-shadow:0 4px 18px rgba(29,185,84,.3);}
+.wp-confirm.red{background:#e8403a;color:#fff;box-shadow:0 4px 18px rgba(232,64,58,.25);}
+
+/* Cashout panel removed in v4.0 — lobby has no cash out */
+
+/* ── MESSAGES DRAWER ── */
+#messages-drawer{
+  position:absolute;bottom:0;top:0;left:0;right:0;margin-bottom:56px;
+  background:#111214;
+  transform:translateY(100%);
+  transition:transform .38s cubic-bezier(.32,.72,0,1);
+  z-index:150;display:flex;flex-direction:column;overflow:hidden;
+}
+#messages-drawer.open{transform:translateY(0);}
+
+/* ── SETTINGS DRAWER ── */
+#settings-drawer{
+  position:absolute;bottom:0;top:0;left:0;right:0;margin-bottom:56px;
+  background:#111214;
+  transform:translateY(100%);
+  transition:transform .38s cubic-bezier(.32,.72,0,1);
+  z-index:150;display:flex;flex-direction:column;overflow:hidden;
+}
+#settings-drawer.open{transform:translateY(0);}
+
+.sd-section{padding:18px 20px 0;}
+.sd-section-lbl{font-size:10px;letter-spacing:2px;color:#8a8f98;text-transform:uppercase;font-family:Arial,sans-serif;font-weight:700;margin-bottom:10px;}
+.sd-row{
+  background:#1c1e21;border-radius:12px;padding:15px 16px;margin-bottom:9px;
+  display:flex;align-items:center;gap:13px;cursor:pointer;
+}
+.sd-row:active{background:#242628;}
+.sd-row-icon{font-size:19px;flex-shrink:0;}
+.sd-row-main{flex:1;min-width:0;}
+.sd-row-name{font-size:13px;color:#f0f0f0;font-family:Arial,sans-serif;font-weight:600;}
+.sd-row-sub{font-size:10px;color:#8a8f98;font-family:Arial,sans-serif;font-weight:400;margin-top:1px;}
+.sd-row-end{color:#8a8f98;font-size:14px;font-family:Arial,sans-serif;}
+
+.sd-nick-wrap{background:#1c1e21;border-radius:12px;padding:15px 16px;margin-bottom:9px;}
+.sd-nick-lbl{font-size:10px;letter-spacing:2px;color:#8a8f98;text-transform:uppercase;font-family:Arial,sans-serif;font-weight:700;margin-bottom:10px;}
+.sd-nick-input{
+  width:100%;background:#111214;border:1.5px solid rgba(255,255,255,.1);
+  border-radius:8px;padding:11px 14px;
+  font-size:16px;color:#f0f0f0;font-family:Arial,sans-serif;font-weight:600;
+  outline:none;letter-spacing:.5px;
+}
+.sd-nick-input:focus{border-color:#1db954;}
+.sd-nick-btn{
+  width:100%;margin-top:10px;padding:11px;border-radius:10px;border:none;
+  background:#1db954;color:#fff;font-size:12px;font-weight:900;
+  letter-spacing:2px;cursor:pointer;text-transform:uppercase;font-family:inherit;
+}
+
+/* ── WALLET TOAST ── */
+#wallet-toast{
+  position:absolute;bottom:68px;left:14px;right:14px;
+  background:#1c1e21;border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;padding:13px 16px;
+  font-size:13px;color:#f0f0f0;font-family:Arial,sans-serif;font-weight:600;
+  display:flex;align-items:center;gap:10px;
+  transform:translateY(16px);opacity:0;
+  transition:transform .3s cubic-bezier(.25,.46,.45,.94),opacity .3s;
+  z-index:300;pointer-events:none;
+}
+#wallet-toast.show{transform:translateY(0);opacity:1;}
+.wt-icon{font-size:17px;flex-shrink:0;}
 
 /* ── INSTALL PROMO (for standalone game players) ── */
 #install-promo{
@@ -683,6 +936,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
     </div><!-- end carousel -->
   </div>
 
+  <!-- DOTS stay here, inside #wrap, above tab bar -->
   <div id="dots">
     <div class="dot active" id="dot-0"></div>
     <div class="dot" id="dot-1"></div>
@@ -691,8 +945,28 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
     <div class="dot" id="dot-4"></div>
   </div>
 
-  <div id="footer">STRAY-PUP LLC &bull; THE TURRELLE SISTERS LLC &bull; FOR ENTERTAINMENT ONLY &bull; v2.4</div>
-</div>
+  <!-- TAB BAR -->
+  <div id="tab-bar">
+    <div class="tb-tab active" id="tb-casino" onclick="tbSwitch('casino')">
+      <div class="tb-icon">&#127922;</div>
+      <div class="tb-label">Casino</div>
+    </div>
+    <div class="tb-tab" id="tb-wallet" onclick="tbSwitch('wallet')">
+      <div class="tb-icon">&#128179;</div>
+      <div class="tb-label">Wallet</div>
+    </div>
+    <div class="tb-tab" id="tb-messages" onclick="tbSwitch('messages')">
+      <div class="tb-icon">&#128276;</div>
+      <div class="tb-label">Messages</div>
+      <div class="tb-pip" id="tb-msg-pip"></div>
+    </div>
+    <div class="tb-tab" id="tb-settings" onclick="tbSwitch('settings')">
+      <div class="tb-icon">&#9881;&#65039;</div>
+      <div class="tb-label">Settings</div>
+    </div>
+  </div>
+
+</div><!-- end #wrap -->
 
 <!-- JACKPOT CELEBRATION -->
 <div id="jp-celebrate">
@@ -751,10 +1025,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
 
 
 
-<div style="position:fixed;bottom:2px;left:0;right:0;text-align:center;
-font-size:7px;color:rgba(255,215,0,0.18);letter-spacing:2px;pointer-events:none;
-z-index:1;font-family:Arial,sans-serif;font-weight:normal">
-GOLD COINS CASINO &bull; v2.4</div>
+<!-- v4.0 watermark removed — version in tab bar settings -->
 
 <!-- OPERATOR BROADCAST MESSAGE BANNER -->
 <div id="op-message-banner">
@@ -784,7 +1055,7 @@ GOLD COINS CASINO &bull; v2.4</div>
 
 
 <script>
-/* Gold Coins Casino Lobby — Single Script Block v3.0 */
+/* Gold Coins Casino Lobby — Single Script Block v4.0 */
 var SUPABASE_URL      = 'https://gdmmoeggkqsvqnqyrubx.supabase.co';
 var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdkbW1vZWdna3FzdnFucXlydWJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4MDYzNTQsImV4cCI6MjA5NjM4MjM1NH0.i86afL3CMpmru4z3LZAbCJkxBiwo25QbwEji8tDBAis';
 
@@ -1199,5 +1470,424 @@ loadSupabase();
 }());
 
 </script>
+
+<!-- ════════════════════════════════════
+     WALLET DRAWER (v4.0 — voucher system)
+════════════════════════════════════ -->
+<div id="wallet-drawer">
+  <div class="wd-handle"><div class="wd-handle-pill"></div></div>
+
+  <div class="wd-header">
+    <div class="wd-header-title">My Wallet</div>
+    <button class="wd-close" onclick="tbSwitch('casino')">&#10005;</button>
+  </div>
+
+  <!-- Balance hero -->
+  <div class="wd-bal-hero">
+    <div class="wd-bal-lbl">Wallet Balance</div>
+    <div class="wd-bal-amt" id="wd-bal">$0.00</div>
+    <div class="wd-bal-nick" id="wd-nick"></div>
+  </div>
+
+  <!-- Single action: Generate Voucher -->
+  <div class="wd-actions">
+    <button class="wd-action" id="wd-btn-genvoucher" style="width:100%;max-width:100%"
+      onclick="wdOpenGenVoucher()">
+      <span class="wd-action-icon">&#127915;</span>
+      <span class="wd-action-lbl">Generate New Voucher</span>
+    </button>
+  </div>
+
+  <div class="wd-div"></div>
+
+  <!-- Voucher list -->
+  <div class="wd-history">
+    <div class="wd-hist-lbl">Available Vouchers</div>
+    <div id="wd-voucher-list">
+      <div class="wd-voucher-empty">No vouchers yet.<br>Cash out from any game or generate one above.</div>
+    </div>
+  </div>
+
+  <!-- GENERATE VOUCHER PANEL -->
+  <div id="wd-genvoucher-panel">
+    <div class="wp-header">
+      <button class="wp-back" onclick="wdCloseGenVoucher()">&#8592;</button>
+      <div class="wp-title">Generate Voucher</div>
+    </div>
+    <div class="wp-body">
+      <div class="wp-amt-wrap">
+        <div class="wp-amt-pre">$</div>
+        <div>
+          <span class="wp-amt-val" id="wd-gv-val">0</span><span class="wp-amt-cursor"></span>
+        </div>
+        <div class="wp-amt-cap">Max per voucher: <span id="wd-gv-cap">$500.00</span></div>
+        <div class="wp-amt-err" id="wd-gv-err">Amount exceeds maximum.</div>
+      </div>
+      <div class="wp-numpad">
+        <button class="wp-key" onclick="wdGvNum('1')">1</button>
+        <button class="wp-key" onclick="wdGvNum('2')">2</button>
+        <button class="wp-key" onclick="wdGvNum('3')">3</button>
+        <button class="wp-key" onclick="wdGvNum('4')">4</button>
+        <button class="wp-key" onclick="wdGvNum('5')">5</button>
+        <button class="wp-key" onclick="wdGvNum('6')">6</button>
+        <button class="wp-key" onclick="wdGvNum('7')">7</button>
+        <button class="wp-key" onclick="wdGvNum('8')">8</button>
+        <button class="wp-key" onclick="wdGvNum('9')">9</button>
+        <button class="wp-key" onclick="wdGvNum('.')">&#183;</button>
+        <button class="wp-key" onclick="wdGvNum('0')">0</button>
+        <button class="wp-key del" onclick="wdGvNum('del')">&#9003;</button>
+      </div>
+      <button class="wp-confirm green" id="wd-gv-confirm-btn"
+        onclick="wdConfirmGenVoucher()">Create Voucher</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     MESSAGES DRAWER
+════════════════════════════════════ -->
+<div id="messages-drawer">
+  <div class="wd-handle"><div class="wd-handle-pill"></div></div>
+  <div class="wd-header">
+    <div class="wd-header-title">Messages</div>
+    <button class="wd-close" onclick="tbSwitch('casino')">&#10005;</button>
+  </div>
+  <!-- Re-use the existing op-msg-board content rendered here -->
+  <div class="wd-history" style="padding-top:16px" id="op-msg-list"></div>
+</div>
+
+<!-- ════════════════════════════════════
+     SETTINGS DRAWER
+════════════════════════════════════ -->
+<div id="settings-drawer">
+  <div class="wd-handle"><div class="wd-handle-pill"></div></div>
+  <div class="wd-header">
+    <div class="wd-header-title">Settings</div>
+    <button class="wd-close" onclick="tbSwitch('casino')">&#10005;</button>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding-bottom:20px">
+    <div class="sd-section" style="margin-top:14px">
+      <div class="sd-section-lbl">Account</div>
+      <div class="sd-nick-wrap">
+        <div class="sd-nick-lbl">Player Nickname</div>
+        <input class="sd-nick-input" id="sd-nick-input" type="text"
+          maxlength="16" autocomplete="off" autocorrect="off" spellcheck="false"
+          placeholder="Enter nickname...">
+        <button class="sd-nick-btn" onclick="sdSaveNick()">Save Nickname</button>
+      </div>
+    </div>
+    <div class="sd-section">
+      <div class="sd-section-lbl">About</div>
+      <div class="sd-row" style="cursor:default">
+        <div class="sd-row-icon">&#127922;</div>
+        <div class="sd-row-main">
+          <div class="sd-row-name">Gold Coins Casino</div>
+          <div class="sd-row-sub">v4.0 &bull; Stray-Pup LLC &bull; The Turrelle Sisters LLC</div>
+        </div>
+      </div>
+      <div class="sd-row" style="cursor:default">
+        <div class="sd-row-icon">&#127358;</div>
+        <div class="sd-row-main">
+          <div class="sd-row-name">Entertainment Only</div>
+          <div class="sd-row-sub">No real money &bull; Must be 18+</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- WALLET TOAST -->
+<div id="wallet-toast">
+  <span class="wt-icon" id="wt-icon">&#10003;</span>
+  <span id="wt-msg">Done</span>
+</div>
+
+<!-- ════════════════════════════════════
+     TAB BAR + WALLET SCRIPT — v4.0
+════════════════════════════════════ -->
+<script>
+/* ── Virtual Wallet & Tab Bar — Gold Coins Casino v4.0 ── */
+(function() {
+
+  /* ── Constants ── */
+  var WALLET_LS  = 'tsgc_wallet';
+  var _bal       = 0;
+  var _cap       = 500.00;
+  var _gvRaw     = '';          /* generate-voucher numpad buffer */
+  var _vouchers  = [];          /* available vouchers from Supabase */
+  var _toastTmr  = null;
+  var _activeTab = 'casino';
+
+  /* ── Helpers ── */
+  function fmt(v) {
+    var n = parseFloat(v); if (isNaN(n) || n < 0) n = 0;
+    return '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
+  function el(id) { return document.getElementById(id); }
+  function lsSet(k,v){ try{localStorage.setItem(k,v);}catch(e){} }
+  function lsGet(k)  { try{return localStorage.getItem(k);}catch(e){return null;} }
+  function client()  { return window._lobbySupabaseClient || null; }
+  function nick()    { return (window._playerNickname||'').toLowerCase().trim(); }
+
+  /* ── Render balance ── */
+  function renderBal() {
+    var e = el('wd-bal'); if (!e) return;
+    e.textContent = fmt(_bal);
+    e.classList.add('bump');
+    setTimeout(function(){ e.classList.remove('bump'); }, 200);
+    var ne = el('wd-nick');
+    if (ne) ne.textContent = window._playerNickname
+      ? ('★ ' + window._playerNickname) : '';
+  }
+
+  /* ── Render voucher list ── */
+  function renderVouchers() {
+    var list = el('wd-voucher-list'); if (!list) return;
+    if (!_vouchers.length) {
+      list.innerHTML = '<div class="wd-voucher-empty">No vouchers yet.<br>' +
+        'Cash out from any game or generate one above.</div>';
+      return;
+    }
+    var gameLabels = {
+      'straypups_1d':'StrayPups $1','straypups_5d':'StrayPups $5',
+      'maxines':'Maxine's Wild Cherries','tsbigmunny':'Turrelle Sisters',
+      'pokeher':'Poke-Her','lobby':'Generated in Lobby'
+    };
+    list.innerHTML = _vouchers.map(function(v) {
+      var d = new Date(v.created_at);
+      var dateStr = d.toLocaleDateString()+', '+
+        d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+      var gameLbl = gameLabels[v.source_game] || v.source_game || 'Lobby';
+      return '<div class="wd-voucher" id="voucher-'+v.id+'">' +
+        '<div class="wd-voucher-icon">&#127915;</div>' +
+        '<div class="wd-voucher-body">' +
+          '<div class="wd-voucher-game">'+gameLbl+'</div>' +
+          '<div class="wd-voucher-date">'+dateStr+'</div>' +
+        '</div>' +
+        '<div class="wd-voucher-amt">'+fmt(v.amount)+'</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  /* ── Load wallet + vouchers from Supabase ── */
+  function loadWallet() {
+    var c = client(); var n = nick();
+    /* Fast localStorage fallback */
+    var lsBal = parseFloat(lsGet(WALLET_LS));
+    if (!isNaN(lsBal)) { _bal = lsBal; renderBal(); }
+    if (!c || !n) return;
+    /* Cap */
+    c.from('wallet_config').select('max_voucher_default').eq('id',1).maybeSingle()
+      .then(function(r) {
+        if (!r.error && r.data) {
+          var cap = parseFloat(r.data.max_voucher_default);
+          if (!isNaN(cap) && cap > 0) {
+            _cap = cap;
+            var ce = el('wd-gv-cap'); if (ce) ce.textContent = fmt(_cap);
+          }
+        }
+        return c.from('wallet').select('balance').eq('nickname',n).maybeSingle();
+      })
+      .then(function(r) {
+        if (!r.error && r.data) {
+          var v = parseFloat(r.data.balance);
+          if (!isNaN(v)) { _bal = v; lsSet(WALLET_LS, v.toFixed(2)); renderBal(); }
+        }
+        return c.from('vouchers')
+          .select('id,amount,source_game,created_at')
+          .eq('nickname', n)
+          .eq('status', 'available')
+          .order('created_at', {ascending: false});
+      })
+      .then(function(r) {
+        if (!r.error && r.data) { _vouchers = r.data; renderVouchers(); }
+      })
+      .catch(function(e){ console.warn('[Wallet] load error:',e); });
+  }
+
+  /* ── Upsert wallet balance ── */
+  function saveWalletBal(bal, cb) {
+    lsSet(WALLET_LS, bal.toFixed(2));
+    var c = client(); var n = nick();
+    if (!c || !n) { if (cb) cb(true); return; }
+    c.from('wallet').upsert({nickname:n, balance:bal},{onConflict:'nickname'})
+      .then(function(r){ if (cb) cb(!r.error); })
+      .catch(function(){ if (cb) cb(false); });
+  }
+
+  /* ── Create a voucher record in Supabase ── */
+  /* Called from lobby (Generate Voucher) — deducts from wallet balance.
+     Also called externally by games on Cash Out via window.walletCreateVoucher. */
+  function createVoucher(amount, sourceGame, cb) {
+    var c = client(); var n = nick();
+    if (!c || !n) { if (cb) cb(false, null); return; }
+    var newBal = _bal - amount; /* may go negative — honor system */
+    c.from('vouchers')
+      .insert({nickname:n, amount:amount, status:'available', source_game:sourceGame||'lobby'})
+      .select()
+      .then(function(r) {
+        if (r.error || !r.data || !r.data[0]) { if (cb) cb(false, null); return; }
+        var voucher = r.data[0];
+        /* Update wallet balance */
+        return saveWalletBal(newBal, function(ok) {
+          if (ok) {
+            _bal = newBal;
+            lsSet(WALLET_LS, newBal.toFixed(2));
+            _vouchers.unshift(voucher);
+            renderBal();
+            renderVouchers();
+          }
+          if (cb) cb(ok, voucher);
+        });
+      })
+      .catch(function(){ if (cb) cb(false, null); });
+  }
+
+  /* Expose for games to call on Cash Out */
+  window.walletCreateVoucher = function(amount, sourceGame, cb) {
+    /* If wallet not yet loaded for this nickname, load first */
+    if (!nick()) { if (cb) cb(false, null); return; }
+    createVoucher(amount, sourceGame, cb);
+  };
+
+  /* ── Generate Voucher panel ── */
+  window.wdOpenGenVoucher = function() {
+    _gvRaw = '';
+    var ve = el('wd-gv-val'); if (ve) ve.textContent = '0';
+    var ee = el('wd-gv-err'); if (ee) ee.classList.remove('show');
+    var p  = el('wd-genvoucher-panel'); if (p) p.classList.add('open');
+  };
+  window.wdCloseGenVoucher = function() {
+    var p = el('wd-genvoucher-panel'); if (p) p.classList.remove('open');
+  };
+
+  window.wdGvNum = function(k) {
+    var ee = el('wd-gv-err'); if (ee) ee.classList.remove('show');
+    if (k === 'del') {
+      _gvRaw = _gvRaw.slice(0,-1);
+    } else if (k === '.') {
+      if (_gvRaw.indexOf('.') !== -1) return;
+      if (!_gvRaw) _gvRaw = '0';
+      _gvRaw += '.';
+    } else {
+      var dot = _gvRaw.indexOf('.');
+      if (dot !== -1 && _gvRaw.length - dot > 2) return;
+      if (_gvRaw === '0' && k !== '.') _gvRaw = k;
+      else _gvRaw += k;
+    }
+    var disp = _gvRaw || '0';
+    var ve = el('wd-gv-val'); if (ve) ve.textContent = disp;
+    var v = parseFloat(disp);
+    if (!isNaN(v) && v > _cap && ee) {
+      ee.textContent = 'Amount exceeds ' + fmt(_cap) + ' maximum.';
+      ee.classList.add('show');
+    }
+  };
+
+  window.wdConfirmGenVoucher = function() {
+    var v   = parseFloat(_gvRaw);
+    var ee  = el('wd-gv-err');
+    if (isNaN(v) || v <= 0) {
+      if (ee) { ee.textContent='Please enter an amount.'; ee.classList.add('show'); } return;
+    }
+    if (v > _cap) {
+      if (ee) { ee.textContent='Amount exceeds '+fmt(_cap)+' maximum.'; ee.classList.add('show'); } return;
+    }
+    var btn = el('wd-gv-confirm-btn');
+    if (btn) { btn.textContent='Creating…'; btn.disabled=true; }
+    createVoucher(v, 'lobby', function(ok) {
+      if (btn) { btn.textContent='Create Voucher'; btn.disabled=false; }
+      if (ok) {
+        wdCloseGenVoucher();
+        wdToast('✓', 'Voucher created for '+fmt(v));
+      } else {
+        if (ee) { ee.textContent='Failed to create — try again.'; ee.classList.add('show'); }
+      }
+    });
+  };
+
+  /* ── Tab switching ── */
+  window.tbSwitch = function(tab) {
+    _activeTab = tab;
+    ['casino','wallet','messages','settings'].forEach(function(t) {
+      var tb = el('tb-'+t); if (tb) tb.classList.toggle('active', t===tab);
+    });
+    var wd = el('wallet-drawer');
+    var md = el('messages-drawer');
+    var sd = el('settings-drawer');
+    if (wd) wd.classList.toggle('open', tab==='wallet');
+    if (md) md.classList.toggle('open', tab==='messages');
+    if (sd) sd.classList.toggle('open', tab==='settings');
+    if (tab !== 'wallet') {
+      var gp = el('wd-genvoucher-panel'); if (gp) gp.classList.remove('open');
+    }
+    if (tab === 'messages') {
+      var pip = el('tb-msg-pip'); if (pip) pip.classList.remove('show');
+    }
+    if (tab === 'settings') {
+      var si = el('sd-nick-input');
+      if (si) si.value = window._playerNickname || '';
+    }
+    /* Reload wallet when opening tab (fresh voucher list) */
+    if (tab === 'wallet' && nick()) loadWallet();
+  };
+
+  /* ── Settings: save nickname ── */
+  window.sdSaveNick = function() {
+    var inp = el('sd-nick-input');
+    var v   = inp ? inp.value.trim() : '';
+    if (v.length < 2) { if (inp) inp.style.borderColor='#e8403a'; return; }
+    if (inp) inp.style.borderColor = '';
+    try { localStorage.setItem('tsgc_nickname', v); } catch(e) {}
+    window._playerNickname = v;
+    var be = el('ls-badge-name'); if (be) be.textContent = '★ ' + v;
+    var badge = el('ls-player-badge'); if (badge) badge.classList.add('show');
+    renderBal();
+    wdToast('✓', 'Nickname updated to '+v);
+    setTimeout(loadWallet, 200);
+  };
+
+  /* ── Toast ── */
+  window.wdToast = function(icon, msg) {
+    var t=el('wallet-toast'); var ic=el('wt-icon'); var tx=el('wt-msg');
+    if (!t) return;
+    if (ic) ic.innerHTML=icon; if (tx) tx.textContent=msg;
+    t.classList.add('show');
+    if (_toastTmr) clearTimeout(_toastTmr);
+    _toastTmr = setTimeout(function(){ t.classList.remove('show'); }, 2800);
+  };
+
+  /* ── Message pip hook ── */
+  var _origQueue = window._queueOpMessage;
+  window._queueOpMessage = function(msg) {
+    if (_activeTab !== 'messages') {
+      var pip = el('tb-msg-pip'); if (pip) pip.classList.add('show');
+    }
+    if (_origQueue) _origQueue(msg);
+  };
+
+  /* ── Override launchGame to write balance first ── */
+  var _origLaunch = window.launchGame;
+  window.launchGame = function(url) {
+    lsSet(WALLET_LS, _bal.toFixed(2));
+    if (_origLaunch) _origLaunch(url);
+  };
+
+  /* ── Init: wait for nickname + Supabase ── */
+  function _waitAndLoad() {
+    if (window._playerNickname && window._lobbySupabaseClient) {
+      loadWallet();
+    } else {
+      /* Use localStorage immediately as fallback */
+      var lsBal = parseFloat(lsGet(WALLET_LS));
+      if (!isNaN(lsBal)) { _bal = lsBal; renderBal(); }
+      setTimeout(_waitAndLoad, 250);
+    }
+  }
+  _waitAndLoad();
+
+}());
+</script>
+
 </body>
 </html>
