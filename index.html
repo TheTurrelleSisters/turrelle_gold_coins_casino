@@ -222,13 +222,11 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
 
 /* ── WALLET DRAWER (slides up over lobby) ── */
 #wallet-drawer{
-  position:absolute;bottom:56px;left:0;right:0;
-  height:calc(100% - 56px);
+  position:absolute;top:0;left:0;right:0;bottom:56px;
   background:#111214;
-  transform:translateY(100%);
+  transform:translateY(110%);
   transition:transform .38s cubic-bezier(.32,.72,0,1);
   z-index:150;display:flex;flex-direction:column;overflow:hidden;
-  bottom:0;top:0;margin-bottom:56px;
 }
 #wallet-drawer.open{transform:translateY(0);}
 
@@ -383,9 +381,9 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
 
 /* ── MESSAGES DRAWER ── */
 #messages-drawer{
-  position:absolute;bottom:0;top:0;left:0;right:0;margin-bottom:56px;
+  position:absolute;top:0;left:0;right:0;bottom:56px;
   background:#111214;
-  transform:translateY(100%);
+  transform:translateY(110%);
   transition:transform .38s cubic-bezier(.32,.72,0,1);
   z-index:150;display:flex;flex-direction:column;overflow:hidden;
 }
@@ -393,9 +391,9 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
 
 /* ── SETTINGS DRAWER ── */
 #settings-drawer{
-  position:absolute;bottom:0;top:0;left:0;right:0;margin-bottom:56px;
+  position:absolute;top:0;left:0;right:0;bottom:56px;
   background:#111214;
-  transform:translateY(100%);
+  transform:translateY(110%);
   transition:transform .38s cubic-bezier(.32,.72,0,1);
   z-index:150;display:flex;flex-direction:column;overflow:hidden;
 }
@@ -431,7 +429,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
 
 /* ── WALLET TOAST ── */
 #wallet-toast{
-  position:absolute;bottom:68px;left:14px;right:14px;
+  position:absolute;bottom:64px;left:14px;right:14px;
   background:#1c1e21;border:1px solid rgba(255,255,255,.08);
   border-radius:12px;padding:13px 16px;
   font-size:13px;color:#f0f0f0;font-family:Arial,sans-serif;font-weight:600;
@@ -947,11 +945,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
 
   <!-- TAB BAR -->
   <div id="tab-bar">
-    <div class="tb-tab active" id="tb-casino" onclick="tbSwitch('casino')">
-      <div class="tb-icon">&#127922;</div>
-      <div class="tb-label">Casino</div>
-    </div>
-    <div class="tb-tab" id="tb-wallet" onclick="tbSwitch('wallet')">
+    <div class="tb-tab active" id="tb-wallet" onclick="tbSwitch('wallet')">
       <div class="tb-icon">&#128179;</div>
       <div class="tb-label">Wallet</div>
     </div>
@@ -1479,7 +1473,7 @@ loadSupabase();
 
   <div class="wd-header">
     <div class="wd-header-title">My Wallet</div>
-    <button class="wd-close" onclick="tbSwitch('casino')">&#10005;</button>
+    <button class="wd-close" onclick="tbSwitch('close')">&#10005;</button>
   </div>
 
   <!-- Balance hero -->
@@ -1550,7 +1544,7 @@ loadSupabase();
   <div class="wd-handle"><div class="wd-handle-pill"></div></div>
   <div class="wd-header">
     <div class="wd-header-title">Messages</div>
-    <button class="wd-close" onclick="tbSwitch('casino')">&#10005;</button>
+    <button class="wd-close" onclick="tbSwitch('close')">&#10005;</button>
   </div>
   <!-- Re-use the existing op-msg-board content rendered here -->
   <div class="wd-history" style="padding-top:16px" id="op-msg-list"></div>
@@ -1563,7 +1557,7 @@ loadSupabase();
   <div class="wd-handle"><div class="wd-handle-pill"></div></div>
   <div class="wd-header">
     <div class="wd-header-title">Settings</div>
-    <button class="wd-close" onclick="tbSwitch('casino')">&#10005;</button>
+    <button class="wd-close" onclick="tbSwitch('close')">&#10005;</button>
   </div>
   <div style="flex:1;overflow-y:auto;padding-bottom:20px">
     <div class="sd-section" style="margin-top:14px">
@@ -1807,28 +1801,44 @@ loadSupabase();
   };
 
   /* ── Tab switching ── */
+  /* tbSwitch: 'close' dismisses all drawers back to lobby view.
+     Casino tab removed — 'close' is the equivalent action. */
   window.tbSwitch = function(tab) {
-    _activeTab = tab;
-    ['casino','wallet','messages','settings'].forEach(function(t) {
+    /* 'close' or unknown tab = dismiss all drawers, show lobby */
+    var validTabs = ['wallet','messages','settings'];
+    var isValid = validTabs.indexOf(tab) !== -1;
+    _activeTab = isValid ? tab : 'lobby';
+
+    /* Update tab active states — only three tabs now */
+    validTabs.forEach(function(t) {
       var tb = el('tb-'+t); if (tb) tb.classList.toggle('active', t===tab);
     });
+
+    /* Open/close drawers */
     var wd = el('wallet-drawer');
     var md = el('messages-drawer');
     var sd = el('settings-drawer');
     if (wd) wd.classList.toggle('open', tab==='wallet');
     if (md) md.classList.toggle('open', tab==='messages');
     if (sd) sd.classList.toggle('open', tab==='settings');
+
+    /* Close gen-voucher sub-panel when closing wallet */
     if (tab !== 'wallet') {
       var gp = el('wd-genvoucher-panel'); if (gp) gp.classList.remove('open');
     }
+
+    /* Clear message pip when messages opened */
     if (tab === 'messages') {
       var pip = el('tb-msg-pip'); if (pip) pip.classList.remove('show');
     }
+
+    /* Populate settings nick input */
     if (tab === 'settings') {
       var si = el('sd-nick-input');
       if (si) si.value = window._playerNickname || '';
     }
-    /* Reload wallet when opening tab (fresh voucher list) */
+
+    /* Reload wallet fresh every time the tab opens */
     if (tab === 'wallet' && nick()) loadWallet();
   };
 
