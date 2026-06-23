@@ -1024,13 +1024,14 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
 
 
 
-<!-- v4.3 — version in tab bar settings -->
+<!-- v4.4 — version in tab bar settings -->
 
 <!-- OPERATOR BROADCAST MESSAGE BANNER -->
 <div id="op-message-banner">
   <div id="op-msg-icon">&#128226;</div>
   <div id="op-msg-body">
     <div id="op-msg-from">&#9733; MESSAGE FROM GOLD COINS CASINO</div>
+    <div id="op-msg-subject" style="font-size:12px;font-weight:bold;color:#ffd700;margin-bottom:2px"></div>
     <div id="op-msg-text"></div>
   </div>
   <div id="op-msg-close" onclick="dismissOpMessage()">&#10005;</div>
@@ -1054,7 +1055,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
 
 
 <script>
-/* Gold Coins Casino Lobby — Single Script Block v4.3 */
+/* Gold Coins Casino Lobby — Single Script Block v4.4 */
 var SUPABASE_URL      = 'https://gdmmoeggkqsvqnqyrubx.supabase.co';
 var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdkbW1vZWdna3FzdnFucXlydWJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4MDYzNTQsImV4cCI6MjA5NjM4MjM1NH0.i86afL3CMpmru4z3LZAbCJkxBiwo25QbwEji8tDBAis';
 
@@ -1116,8 +1117,10 @@ function launchGame(url) {
     if(!_mq.length)return;var msg=_mq.shift();_ms=true;
     var el=document.getElementById('op-message-banner');
     var ic=document.getElementById('op-msg-icon');
+    var su=document.getElementById('op-msg-subject');
     var tx=document.getElementById('op-msg-text');
     if(ic)ic.innerHTML=ICONS[msg.type]||ICONS.general;
+    if(su)su.textContent=msg.subject||'';
     if(tx)tx.textContent=msg.message;
     if(el)el.classList.add('show');
     setTimeout(function(){if(_ms)window.dismissOpMessage();},12000);
@@ -1230,6 +1233,7 @@ loadSupabase();
         /* Already have a nickname — go straight in */
         showBadge(savedNick);
         window._playerNickname = savedNick;
+        if (typeof window._setPlayerIdent === 'function') window._setPlayerIdent(savedNick);
         dismissSplash();
         return;
       }
@@ -1247,6 +1251,7 @@ loadSupabase();
       /* Returning player with saved nick */
       showBadge(savedNick);
       window._playerNickname = savedNick;
+      if (typeof window._setPlayerIdent === 'function') window._setPlayerIdent(savedNick);
       dismissSplash();
       return;
     }
@@ -1263,6 +1268,7 @@ loadSupabase();
     saveNick(nick);
     showBadge(nick);
     window._playerNickname = nick;
+    if (typeof window._setPlayerIdent === 'function') window._setPlayerIdent(nick);
     dismissSplash();
   };
 
@@ -1280,6 +1286,7 @@ loadSupabase();
       saveNick(nick);
       showBadge(nick);
       window._playerNickname = nick;
+      if (typeof window._setPlayerIdent === 'function') window._setPlayerIdent(nick);
     }
   };
 
@@ -1333,19 +1340,32 @@ loadSupabase();
 
 /* ── OPERATOR MESSAGE BOARD ── */
 (function() {
-  var DISMISSED_KEY = 'tsgc_dismissed_msgs';
-  var _msgs         = [];   /* all loaded messages */
-  var _dismissed    = {};   /* id -> true */
+  /* Player identifier — nickname preferred, sessionKey fallback.
+     Set after lobby nickname entry. Used for DB-side dismissed_by tracking. */
+  var _playerIdent = null;
+  var _msgs        = [];   /* all loaded messages from public.messages */
+  var ICONS = { general:'&#128226;', jackpot:'&#127922;', event:'&#9889;', bonus:'&#127873;' };
+  var TYPE_LABELS = {
+    general: '&#9733; GENERAL', jackpot: '&#127922; JACKPOT ALERT',
+    event:   '&#9889; SPECIAL EVENT', bonus: '&#127873; BONUS OFFER'
+  };
 
-  function _loadDismissed() {
-    try {
-      var d = JSON.parse(localStorage.getItem(DISMISSED_KEY) || '{}');
-      _dismissed = d;
-    } catch(e) { _dismissed = {}; }
+  /* Called by lobby nickname flow once player identity is known */
+  window._setPlayerIdent = function(ident) { _playerIdent = ident; };
+
+  function _myIdent() {
+    if (_playerIdent) return _playerIdent;
+    try { var sk = localStorage.getItem('tsgc_session_key'); if (sk) return sk; } catch(e) {}
+    return 'anonymous_' + Date.now();
   }
 
-  function _saveDismissed() {
-    try { localStorage.setItem(DISMISSED_KEY, JSON.stringify(_dismissed)); } catch(e) {}
+  function _isDismissed(m) {
+    if (!m.dismissed_by || !Array.isArray(m.dismissed_by)) return false;
+    var me = _myIdent();
+    for (var i = 0; i < m.dismissed_by.length; i++) {
+      if (m.dismissed_by[i] === me) return true;
+    }
+    return false;
   }
 
   function _fmtTime(ts) {
@@ -1356,29 +1376,30 @@ loadSupabase();
     } catch(e) { return ''; }
   }
 
-  function _typeLabel(t) {
-    var map = { general:'&#9733; GENERAL', alert:'&#9888; ALERT',
-                info:'&#8505; INFO', special:'&#10024; SPECIAL' };
-    return map[t] || '&#9733; MESSAGE';
-  }
-
   function _renderBoard() {
     var list = document.getElementById('op-msg-list');
     if (!list) return;
-    var visible = _msgs.filter(function(m) { return !_dismissed[m.id]; });
+    var visible = _msgs.filter(function(m) { return !_isDismissed(m); });
     if (visible.length === 0) {
       list.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.3);padding:20px;font-size:12px">No messages</div>';
     } else {
       list.innerHTML = visible.map(function(m) {
+        var subj = (m.subject || '').replace(/</g,'&lt;') || '(no subject)';
+        var body = (m.message || '').replace(/</g,'&lt;');
         return '<div class="op-msg-card ' + (m.type||'general') + '" id="msg-card-' + m.id + '">' +
-          '<div class="op-msg-card-type">' + _typeLabel(m.type) + '</div>' +
-          '<div class="op-msg-card-text">' + (m.message||'').replace(/</g,'&lt;') + '</div>' +
+          '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">' +
+            '<span style="font-size:18px">' + (ICONS[m.type]||ICONS.general) + '</span>' +
+            '<div>' +
+              '<div class="op-msg-card-type">' + (TYPE_LABELS[m.type]||TYPE_LABELS.general) + '</div>' +
+              '<div style="font-size:12px;font-weight:bold;color:#f0e0ff;line-height:1.3">' + subj + '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="op-msg-card-text">' + body + '</div>' +
           '<div class="op-msg-card-time">' + _fmtTime(m.created_at) + '</div>' +
           '<button class="op-msg-card-dismiss" onclick="dismissMsg(' + m.id + ')">&#10005;</button>' +
           '</div>';
       }).join('');
     }
-    /* Update bell */
     _updateBell(visible.length);
   }
 
@@ -1392,31 +1413,36 @@ loadSupabase();
     }
   }
 
+  /* Soft dismiss — optimistic local hide + DB persist via RPC */
   window.dismissMsg = function(id) {
-    _dismissed[id] = true;
-    _saveDismissed();
+    for (var i = 0; i < _msgs.length; i++) {
+      if (_msgs[i].id === id) {
+        if (!_msgs[i].dismissed_by) _msgs[i].dismissed_by = [];
+        _msgs[i].dismissed_by.push(_myIdent());
+        break;
+      }
+    }
     _renderBoard();
     var board = document.getElementById('op-msg-board');
-    /* Close board if no more messages */
-    var visible = _msgs.filter(function(m) { return !_dismissed[m.id]; });
+    var visible = _msgs.filter(function(m) { return !_isDismissed(m); });
     if (visible.length === 0 && board) board.classList.remove('show');
+    if (_lobbyClient) {
+      _lobbyClient.rpc('dismiss_message', { p_id: id, p_player: _myIdent() })
+        .then(function(res) {
+          if (res && res.error) console.warn('[Messages] dismiss RPC error:', res.error.message);
+        });
+    }
   };
 
-  window.openMessageBoard  = function() {
-    var b = document.getElementById('op-msg-board');
-    if (b) b.classList.add('show');
-  };
-  window.closeMessageBoard = function() {
-    var b = document.getElementById('op-msg-board');
-    if (b) b.classList.remove('show');
-  };
+  window.openMessageBoard  = function() { var b = document.getElementById('op-msg-board'); if (b) b.classList.add('show'); };
+  window.closeMessageBoard = function() { var b = document.getElementById('op-msg-board'); if (b) b.classList.remove('show'); };
 
-  /* Load existing messages from DB */
+  var _lobbyClient = null;
+
   function _loadMessages(client) {
-    client.from('broadcast_messages')
-      .select('*')
-      .not('type', 'in', '("force_local_ball","restore_wide_ball")')
-      .order('created_at', { ascending: false })
+    _lobbyClient = client;
+    client.from('messages')
+      .select('*').order('created_at', { ascending: false })
       .then(function(res) {
         if (res.error || !res.data) return;
         _msgs = res.data;
@@ -1424,41 +1450,35 @@ loadSupabase();
       });
   }
 
-  /* Subscribe to new messages */
   function _subscribeMessages(client) {
-    client.channel('lobby-messages')
-      .on('postgres_changes', {
-        event: 'INSERT', schema: 'public', table: 'broadcast_messages'
-      }, function(p) {
+    client.channel('lobby-op-messages')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, function(p) {
         if (!p.new) return;
-        var t = (p.new.type || '').toLowerCase();
-        if (t === 'force_local_ball' || t === 'restore_wide_ball') return;
-        /* Prepend new message */
         _msgs.unshift(p.new);
         _renderBoard();
-        /* Auto-open board for new messages */
         var board = document.getElementById('op-msg-board');
         if (board) board.classList.add('show');
+        if (typeof window._queueOpMessage === 'function') window._queueOpMessage(p.new);
+      })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages' }, function(p) {
+        if (!p.old) return;
+        _msgs = _msgs.filter(function(m) { return m.id !== p.old.id; });
+        _renderBoard();
       })
       .subscribe();
   }
 
-  /* Init — wait for Supabase to be ready */
   function _init() {
-    if (typeof window.supabase === 'undefined') {
-      setTimeout(_init, 300);
-      return;
-    }
-    var SUPABASE_URL_L      = 'https://gdmmoeggkqsvqnqyrubx.supabase.co';
-    var SUPABASE_ANON_KEY_L = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdkbW1vZWdna3FzdnFucXlydWJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4MDYzNTQsImV4cCI6MjA5NjM4MjM1NH0.i86afL3CMpmru4z3LZAbCJkxBiwo25QbwEji8tDBAis';
+    if (typeof window.supabase === 'undefined') { setTimeout(_init, 300); return; }
     try {
-      /* Re-use existing client if available, otherwise create one */
       var client = window._lobbySupabaseClient ||
-        window.supabase.createClient(SUPABASE_URL_L, SUPABASE_ANON_KEY_L);
-      _loadDismissed();
+        window.supabase.createClient(
+          'https://gdmmoeggkqsvqnqyrubx.supabase.co',
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdkbW1vZWdna3FzdnFucXlydWJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4MDYzNTQsImV4cCI6MjA5NjM4MjM1NH0.i86afL3CMpmru4z3LZAbCJkxBiwo25QbwEji8tDBAis'
+        );
       _loadMessages(client);
       _subscribeMessages(client);
-    } catch(e) { console.warn('Message board init error:', e); }
+    } catch(e) { console.warn('[Messages] init error:', e); }
   }
 
   /* Remove old single-message banner system if present */
@@ -1471,7 +1491,7 @@ loadSupabase();
 </script>
 
 <!-- ════════════════════════════════════
-     WALLET DRAWER (v4.3 — voucher system)
+     WALLET DRAWER (v4.4 — voucher system)
 ════════════════════════════════════ -->
 <div id="wallet-drawer">
   <div class="wd-handle"><div class="wd-handle-pill"></div></div>
@@ -1586,10 +1606,10 @@ loadSupabase();
 </div>
 
 <!-- ════════════════════════════════════
-     TAB BAR + WALLET SCRIPT — v4.3
+     TAB BAR + WALLET SCRIPT — v4.4
 ════════════════════════════════════ -->
 <script>
-/* ── Virtual Wallet & Tab Bar — Gold Coins Casino v4.3 ── */
+/* ── Virtual Wallet & Tab Bar — Gold Coins Casino v4.4 ── */
 (function() {
 
   /* ── Constants ── */
