@@ -31,7 +31,7 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none;}
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Arial Black',Arial,sans-serif;overflow:hidden;}
-#wrap{max-width:500px;margin:0 auto;height:100%;display:flex;flex-direction:column;position:relative;background:var(--bg);}
+#wrap{max-width:500px;margin:0 auto;height:100%;display:flex;flex-direction:column;position:relative;background:var(--bg);overflow:hidden;}
 @media(min-width:600px){html,body{overflow:auto;height:auto;min-height:100%;}#wrap{height:auto;min-height:100vh;}#carousel-section{min-height:420px;}}
 
 /* ── SCANLINES ── */
@@ -195,6 +195,8 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
   display:flex;align-items:stretch;
   position:relative;z-index:200;
   padding-bottom:env(safe-area-inset-bottom,0px);
+  /* Keeps tab bar above drawers on desktop */
+  isolation:isolate;
 }
 .tb-tab{
   flex:1;display:flex;flex-direction:column;
@@ -222,11 +224,12 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
 
 /* ── WALLET DRAWER (slides up over lobby) ── */
 #wallet-drawer{
-  position:absolute;top:0;left:0;right:0;bottom:56px;
+  position:fixed;top:0;left:0;right:0;bottom:56px;
+  max-width:500px;margin:0 auto;
   background:#111214;
   transform:translateY(110%);
   transition:transform .38s cubic-bezier(.32,.72,0,1);
-  z-index:150;display:flex;flex-direction:column;overflow:hidden;
+  z-index:210;display:flex;flex-direction:column;overflow:hidden;
 }
 #wallet-drawer.open{transform:translateY(0);}
 
@@ -377,25 +380,27 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
 .wp-confirm.green{background:#1db954;color:#fff;box-shadow:0 4px 18px rgba(29,185,84,.3);}
 .wp-confirm.red{background:#e8403a;color:#fff;box-shadow:0 4px 18px rgba(232,64,58,.25);}
 
-/* Cashout panel removed in v4.0 — lobby has no cash out */
+/* Cashout panel removed — lobby has no cash out */
 
 /* ── MESSAGES DRAWER ── */
 #messages-drawer{
-  position:absolute;top:0;left:0;right:0;bottom:56px;
+  position:fixed;top:0;left:0;right:0;bottom:56px;
+  max-width:500px;margin:0 auto;
   background:#111214;
   transform:translateY(110%);
   transition:transform .38s cubic-bezier(.32,.72,0,1);
-  z-index:150;display:flex;flex-direction:column;overflow:hidden;
+  z-index:210;display:flex;flex-direction:column;overflow:hidden;
 }
 #messages-drawer.open{transform:translateY(0);}
 
 /* ── SETTINGS DRAWER ── */
 #settings-drawer{
-  position:absolute;top:0;left:0;right:0;bottom:56px;
+  position:fixed;top:0;left:0;right:0;bottom:56px;
+  max-width:500px;margin:0 auto;
   background:#111214;
   transform:translateY(110%);
   transition:transform .38s cubic-bezier(.32,.72,0,1);
-  z-index:150;display:flex;flex-direction:column;overflow:hidden;
+  z-index:210;display:flex;flex-direction:column;overflow:hidden;
 }
 #settings-drawer.open{transform:translateY(0);}
 
@@ -1019,7 +1024,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
 
 
 
-<!-- v4.0 watermark removed — version in tab bar settings -->
+<!-- v4.3 — version in tab bar settings -->
 
 <!-- OPERATOR BROADCAST MESSAGE BANNER -->
 <div id="op-message-banner">
@@ -1049,7 +1054,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
 
 
 <script>
-/* Gold Coins Casino Lobby — Single Script Block v4.0 */
+/* Gold Coins Casino Lobby — Single Script Block v4.3 */
 var SUPABASE_URL      = 'https://gdmmoeggkqsvqnqyrubx.supabase.co';
 var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdkbW1vZWdna3FzdnFucXlydWJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4MDYzNTQsImV4cCI6MjA5NjM4MjM1NH0.i86afL3CMpmru4z3LZAbCJkxBiwo25QbwEji8tDBAis';
 
@@ -1466,7 +1471,7 @@ loadSupabase();
 </script>
 
 <!-- ════════════════════════════════════
-     WALLET DRAWER (v4.0 — voucher system)
+     WALLET DRAWER (v4.3 — voucher system)
 ════════════════════════════════════ -->
 <div id="wallet-drawer">
   <div class="wd-handle"><div class="wd-handle-pill"></div></div>
@@ -1570,23 +1575,7 @@ loadSupabase();
         <button class="sd-nick-btn" onclick="sdSaveNick()">Save Nickname</button>
       </div>
     </div>
-    <div class="sd-section">
-      <div class="sd-section-lbl">About</div>
-      <div class="sd-row" style="cursor:default">
-        <div class="sd-row-icon">&#127922;</div>
-        <div class="sd-row-main">
-          <div class="sd-row-name">Gold Coins Casino</div>
-          <div class="sd-row-sub">v4.0 &bull; Stray-Pup LLC &bull; The Turrelle Sisters LLC</div>
-        </div>
-      </div>
-      <div class="sd-row" style="cursor:default">
-        <div class="sd-row-icon">&#127358;</div>
-        <div class="sd-row-main">
-          <div class="sd-row-name">Entertainment Only</div>
-          <div class="sd-row-sub">No real money &bull; Must be 18+</div>
-        </div>
-      </div>
-    </div>
+
   </div>
 </div>
 
@@ -1597,10 +1586,10 @@ loadSupabase();
 </div>
 
 <!-- ════════════════════════════════════
-     TAB BAR + WALLET SCRIPT — v4.0
+     TAB BAR + WALLET SCRIPT — v4.3
 ════════════════════════════════════ -->
 <script>
-/* ── Virtual Wallet & Tab Bar — Gold Coins Casino v4.0 ── */
+/* ── Virtual Wallet & Tab Bar — Gold Coins Casino v4.3 ── */
 (function() {
 
   /* ── Constants ── */
@@ -1610,7 +1599,7 @@ loadSupabase();
   var _gvRaw     = '';          /* generate-voucher numpad buffer */
   var _vouchers  = [];          /* available vouchers from Supabase */
   var _toastTmr  = null;
-  var _activeTab = 'casino';
+  var _activeTab = 'lobby';
 
   /* ── Helpers ── */
   function fmt(v) {
@@ -1644,7 +1633,7 @@ loadSupabase();
     }
     var gameLabels = {
       'straypups_1d':'StrayPups $1','straypups_5d':'StrayPups $5',
-      'maxines':'Maxine's Wild Cherries','tsbigmunny':'Turrelle Sisters',
+      'maxines':"Maxine's",'tsbigmunny':'Turrelle Sisters',
       'pokeher':'Poke-Her','lobby':'Generated in Lobby'
     };
     list.innerHTML = _vouchers.map(function(v) {
