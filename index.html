@@ -107,14 +107,17 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
   position:relative;overflow:hidden;
 }
 
-/* Card background glow per game */
+/* Card background glow per game — v4.4 order:
+   1=TSBM  2=TSBMII  3=SP1  4=SP5  5=Maxine  6=Poke-Her */
 .card:nth-child(1)::before{content:'';position:absolute;inset:0;
-  background:radial-gradient(ellipse at center top,rgba(0,100,255,.15) 0%,transparent 60%);pointer-events:none;}
+  background:radial-gradient(ellipse at center top,rgba(180,0,255,.14) 0%,transparent 60%);pointer-events:none;}
 .card:nth-child(2)::before{content:'';position:absolute;inset:0;
-  background:radial-gradient(ellipse at center top,rgba(255,50,0,.12) 0%,transparent 60%);pointer-events:none;}
+  background:radial-gradient(ellipse at center top,rgba(0,220,210,.12) 0%,transparent 60%);pointer-events:none;}
 .card:nth-child(3)::before{content:'';position:absolute;inset:0;
-  background:radial-gradient(ellipse at center top,rgba(180,0,255,.12) 0%,transparent 60%);pointer-events:none;}
-.card:nth-child(5)::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at center top,rgba(0,100,255,.15) 0%,transparent 60%);pointer-events:none;}
+.card:nth-child(4)::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at center top,rgba(255,50,0,.12) 0%,transparent 60%);pointer-events:none;}
+.card:nth-child(6)::before{content:'';position:absolute;inset:0;
   background:radial-gradient(ellipse at center top,rgba(255,68,170,.12) 0%,transparent 60%);pointer-events:none;}
 
 .card-top{display:flex;justify-content:space-between;align-items:flex-start;width:100%;margin-bottom:6px;}
@@ -127,6 +130,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
 .badge-5d {border-color:#ff3300;color:#ff3300;}
 .badge-sis{border-color:#cc00ff;color:#cc00ff;}
 .badge-mwc{border-color:#ff3377;color:#ff3377;}
+.badge-tsbmii{border-color:#00dcd2;color:#00dcd2;}
 
 .card-img-wrap{
   width:100%;flex:1;min-height:0;
@@ -135,9 +139,10 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
   box-shadow:0 0 20px currentColor;
   margin-bottom:8px;
 }
-.card:nth-child(1) .card-img-wrap{border-color:#0088ff;color:#0088ff;}
-.card:nth-child(2) .card-img-wrap{border-color:#ff3300;color:#ff3300;}
-.card:nth-child(3) .card-img-wrap{border-color:#cc00ff;color:#cc00ff;}
+.card:nth-child(1) .card-img-wrap{border-color:#cc00ff;color:#cc00ff;}
+.card:nth-child(2) .card-img-wrap{border-color:#00dcd2;color:#00dcd2;}
+.card:nth-child(3) .card-img-wrap{border-color:#0088ff;color:#0088ff;}
+.card:nth-child(4) .card-img-wrap{border-color:#ff3300;color:#ff3300;}
 .card-img-wrap img{width:100%;height:100%;object-fit:cover;object-position:center 20%;display:block;}
 .card-img-wrap::after{content:'';position:absolute;inset:0;
   background:linear-gradient(180deg,transparent 50%,rgba(0,0,0,.7) 100%);pointer-events:none;}
@@ -147,9 +152,10 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
   text-align:center;line-height:1.15;margin-bottom:3px;
   text-transform:uppercase;letter-spacing:1px;
 }
-.card:nth-child(1) .card-name{color:#0088ff;text-shadow:0 0 10px #0088ff,0 0 20px #0044ff;}
-.card:nth-child(2) .card-name{color:#ff4400;text-shadow:0 0 10px #ff4400,0 0 20px #cc2200;}
-.card:nth-child(3) .card-name{color:#cc00ff;text-shadow:0 0 10px #cc00ff,0 0 20px #8800cc;}
+.card:nth-child(1) .card-name{color:#cc00ff;text-shadow:0 0 10px #cc00ff,0 0 20px #8800cc;}
+.card:nth-child(2) .card-name{color:#00dcd2;text-shadow:0 0 10px #00dcd2,0 0 20px #009990;}
+.card:nth-child(3) .card-name{color:#0088ff;text-shadow:0 0 10px #0088ff,0 0 20px #0044ff;}
+.card:nth-child(4) .card-name{color:#ff4400;text-shadow:0 0 10px #ff4400,0 0 20px #cc2200;}
 
 .card-desc{font-size:9px;color:var(--dim);letter-spacing:1px;text-align:center;
   margin-bottom:5px;font-family:Arial,sans-serif;font-weight:normal;}
@@ -167,17 +173,21 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
 }
 .play-btn:active{transform:scale(.95);}
 .card:nth-child(1) .play-btn{
-  background:linear-gradient(135deg,#003a8a,#0066cc,#004499);
-  color:#fff;border:1.5px solid #0088ff;
-  box-shadow:0 4px 20px rgba(0,136,255,.5);}
-.card:nth-child(2) .play-btn{
-  background:linear-gradient(135deg,#5a0000,#cc2200,#881100);
-  color:#fff;border:1.5px solid #ff3300;
-  box-shadow:0 4px 20px rgba(255,50,0,.5);}
-.card:nth-child(3) .play-btn{
   background:linear-gradient(135deg,#3a006a,#8800cc,#550088);
   color:#fff;border:1.5px solid #cc00ff;
   box-shadow:0 4px 20px rgba(200,0,255,.5);}
+.card:nth-child(2) .play-btn{
+  background:linear-gradient(135deg,#003a3a,#007a72,#005550);
+  color:#fff;border:1.5px solid #00dcd2;
+  box-shadow:0 4px 20px rgba(0,220,210,.5);}
+.card:nth-child(3) .play-btn{
+  background:linear-gradient(135deg,#003a8a,#0066cc,#004499);
+  color:#fff;border:1.5px solid #0088ff;
+  box-shadow:0 4px 20px rgba(0,136,255,.5);}
+.card:nth-child(4) .play-btn{
+  background:linear-gradient(135deg,#5a0000,#cc2200,#881100);
+  color:#fff;border:1.5px solid #ff3300;
+  box-shadow:0 4px 20px rgba(255,50,0,.5);}
 
 /* ── DOTS (carousel position indicators — kept inside carousel) ── */
 #dots{display:flex;justify-content:center;gap:8px;padding:6px 0 4px;flex-shrink:0;}
@@ -846,43 +856,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
     <div id="carousel-hint">&#8592;&nbsp; SWIPE TO BROWSE &nbsp;&#8594;</div>
     <div id="carousel">
 
-      <!-- CARD 1: StrayPups $1 -->
-      <div class="card">
-        <div class="card-top">
-          <div style="font-size:9px;color:var(--dim);letter-spacing:1px">STRAYPUPS</div>
-          <div class="card-badge badge-1d">$1</div>
-        </div>
-        <div class="card-img-wrap">
-          <img src="assets/images/straypups_splash.jpg" alt="StrayPups Big Munny">
-        </div>
-        <div class="card-name">StrayPups<br>Big Munny</div>
-        <div class="card-desc">3-Reel &bull; 1 Payline &bull; $1&ndash;$3 Bet</div>
-        <div class="card-jp">&#9733; Progressive Jackpot: <span class="prog-inline">$500.00</span></div>
-        <button class="play-btn" id="btn-sp1"
-          onclick="launchGame('https://theturrellesisters.github.io/straypups_big_munny_v5_27_PWA/index.html')">
-          PLAY NOW
-        </button>
-      </div>
-
-      <!-- CARD 2: StrayPups $5 -->
-      <div class="card">
-        <div class="card-top">
-          <div style="font-size:9px;color:var(--dim);letter-spacing:1px">STRAYPUPS</div>
-          <div class="card-badge badge-5d">$5</div>
-        </div>
-        <div class="card-img-wrap">
-          <img src="assets/images/straypups_splash.jpg" alt="StrayPups Big Munny $5">
-        </div>
-        <div class="card-name">StrayPups<br>Big Munny</div>
-        <div class="card-desc">3-Reel &bull; 1 Payline &bull; $5&ndash;$15 Bet</div>
-        <div class="card-jp">&#9733; Progressive Jackpot: <span class="prog-inline">$500.00</span></div>
-        <button class="play-btn" id="btn-sp5"
-          onclick="launchGame('https://theturrellesisters.github.io/straypups_big_munny_5d/index.html')">
-          PLAY NOW
-        </button>
-      </div>
-
-      <!-- CARD 3: Turrelle Sisters -->
+      <!-- CARD 1: Turrelle Sisters Big Munny (TSBM) -->
       <div class="card">
         <div class="card-top">
           <div style="font-size:9px;color:var(--dim);letter-spacing:1px">THE TURRELLE SISTERS</div>
@@ -900,7 +874,61 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
         </button>
       </div>
 
-      <!-- CARD 4: Maxine's Wild Cherries -->
+      <!-- CARD 2: Turrelle Sisters Big Munny II -->
+      <div class="card">
+        <div class="card-top">
+          <div style="font-size:9px;color:var(--dim);letter-spacing:1px">THE TURRELLE SISTERS</div>
+          <div class="card-badge badge-tsbmii">NEW</div>
+        </div>
+        <div class="card-img-wrap">
+          <img src="assets/images/tsbmii_splash.jpg" alt="The Turrelle Sisters Big Munny II">
+        </div>
+        <div class="card-name">Turrelle Sisters<br>Big Munny II</div>
+        <div class="card-desc">5-Reel &bull; 9 Lines &bull; Red Spin Bonus &bull; 1&cent;&ndash;10&cent;</div>
+        <div class="card-jp">&#9733; Progressive Jackpot: <span class="prog-inline">$500.00</span></div>
+        <button class="play-btn" id="btn-tsbmii"
+          onclick="launchGame('https://theturrellesisters.github.io/turrelle_big_munny_2/')">
+          PLAY NOW
+        </button>
+      </div>
+
+      <!-- CARD 3: StrayPups Big Munny $1 -->
+      <div class="card">
+        <div class="card-top">
+          <div style="font-size:9px;color:var(--dim);letter-spacing:1px">STRAYPUPS</div>
+          <div class="card-badge badge-1d">$1</div>
+        </div>
+        <div class="card-img-wrap">
+          <img src="assets/images/straypups_splash.jpg" alt="StrayPups Big Munny">
+        </div>
+        <div class="card-name">StrayPups<br>Big Munny</div>
+        <div class="card-desc">3-Reel &bull; 1 Payline &bull; $1&ndash;$3 Bet</div>
+        <div class="card-jp">&#9733; Progressive Jackpot: <span class="prog-inline">$500.00</span></div>
+        <button class="play-btn" id="btn-sp1"
+          onclick="launchGame('https://theturrellesisters.github.io/straypups_big_munny_v5_27_PWA/index.html')">
+          PLAY NOW
+        </button>
+      </div>
+
+      <!-- CARD 4: StrayPups Big Munny $5 -->
+      <div class="card">
+        <div class="card-top">
+          <div style="font-size:9px;color:var(--dim);letter-spacing:1px">STRAYPUPS</div>
+          <div class="card-badge badge-5d">$5</div>
+        </div>
+        <div class="card-img-wrap">
+          <img src="assets/images/straypups_splash.jpg" alt="StrayPups Big Munny $5">
+        </div>
+        <div class="card-name">StrayPups<br>Big Munny</div>
+        <div class="card-desc">3-Reel &bull; 1 Payline &bull; $5&ndash;$15 Bet</div>
+        <div class="card-jp">&#9733; Progressive Jackpot: <span class="prog-inline">$500.00</span></div>
+        <button class="play-btn" id="btn-sp5"
+          onclick="launchGame('https://theturrellesisters.github.io/straypups_big_munny_5d/index.html')">
+          PLAY NOW
+        </button>
+      </div>
+
+      <!-- CARD 5: Maxine's Wild Cherries -->
       <div class="card">
         <div class="card-top">
           <div style="font-size:9px;color:var(--dim);letter-spacing:1px">MAXINE'S WILD CHERRIES</div>
@@ -918,7 +946,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
         </button>
       </div>
 
-      <!-- CARD 5: Poke-Her Video Poker -->
+      <!-- CARD 6: Poke-Her Video Poker -->
       <div class="card">
         <div class="card-top">
           <div style="font-size:9px;color:var(--dim);letter-spacing:1px">THE TURRELLE SISTERS</div>
@@ -946,6 +974,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
     <div class="dot" id="dot-2"></div>
     <div class="dot" id="dot-3"></div>
     <div class="dot" id="dot-4"></div>
+    <div class="dot" id="dot-5"></div>
   </div>
 
   <!-- TAB BAR -->
@@ -1031,7 +1060,6 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
   <div id="op-msg-icon">&#128226;</div>
   <div id="op-msg-body">
     <div id="op-msg-from">&#9733; MESSAGE FROM GOLD COINS CASINO</div>
-    <div id="op-msg-subject" style="font-size:12px;font-weight:bold;color:#ffd700;margin-bottom:2px"></div>
     <div id="op-msg-text"></div>
   </div>
   <div id="op-msg-close" onclick="dismissOpMessage()">&#10005;</div>
@@ -1117,10 +1145,8 @@ function launchGame(url) {
     if(!_mq.length)return;var msg=_mq.shift();_ms=true;
     var el=document.getElementById('op-message-banner');
     var ic=document.getElementById('op-msg-icon');
-    var su=document.getElementById('op-msg-subject');
     var tx=document.getElementById('op-msg-text');
     if(ic)ic.innerHTML=ICONS[msg.type]||ICONS.general;
-    if(su)su.textContent=msg.subject||'';
     if(tx)tx.textContent=msg.message;
     if(el)el.classList.add('show');
     setTimeout(function(){if(_ms)window.dismissOpMessage();},12000);
@@ -1233,7 +1259,6 @@ loadSupabase();
         /* Already have a nickname — go straight in */
         showBadge(savedNick);
         window._playerNickname = savedNick;
-        if (typeof window._setPlayerIdent === 'function') window._setPlayerIdent(savedNick);
         dismissSplash();
         return;
       }
@@ -1251,7 +1276,6 @@ loadSupabase();
       /* Returning player with saved nick */
       showBadge(savedNick);
       window._playerNickname = savedNick;
-      if (typeof window._setPlayerIdent === 'function') window._setPlayerIdent(savedNick);
       dismissSplash();
       return;
     }
@@ -1268,7 +1292,6 @@ loadSupabase();
     saveNick(nick);
     showBadge(nick);
     window._playerNickname = nick;
-    if (typeof window._setPlayerIdent === 'function') window._setPlayerIdent(nick);
     dismissSplash();
   };
 
@@ -1286,7 +1309,6 @@ loadSupabase();
       saveNick(nick);
       showBadge(nick);
       window._playerNickname = nick;
-      if (typeof window._setPlayerIdent === 'function') window._setPlayerIdent(nick);
     }
   };
 
@@ -1340,32 +1362,19 @@ loadSupabase();
 
 /* ── OPERATOR MESSAGE BOARD ── */
 (function() {
-  /* Player identifier — nickname preferred, sessionKey fallback.
-     Set after lobby nickname entry. Used for DB-side dismissed_by tracking. */
-  var _playerIdent = null;
-  var _msgs        = [];   /* all loaded messages from public.messages */
-  var ICONS = { general:'&#128226;', jackpot:'&#127922;', event:'&#9889;', bonus:'&#127873;' };
-  var TYPE_LABELS = {
-    general: '&#9733; GENERAL', jackpot: '&#127922; JACKPOT ALERT',
-    event:   '&#9889; SPECIAL EVENT', bonus: '&#127873; BONUS OFFER'
-  };
+  var DISMISSED_KEY = 'tsgc_dismissed_msgs';
+  var _msgs         = [];   /* all loaded messages */
+  var _dismissed    = {};   /* id -> true */
 
-  /* Called by lobby nickname flow once player identity is known */
-  window._setPlayerIdent = function(ident) { _playerIdent = ident; };
-
-  function _myIdent() {
-    if (_playerIdent) return _playerIdent;
-    try { var sk = localStorage.getItem('tsgc_session_key'); if (sk) return sk; } catch(e) {}
-    return 'anonymous_' + Date.now();
+  function _loadDismissed() {
+    try {
+      var d = JSON.parse(localStorage.getItem(DISMISSED_KEY) || '{}');
+      _dismissed = d;
+    } catch(e) { _dismissed = {}; }
   }
 
-  function _isDismissed(m) {
-    if (!m.dismissed_by || !Array.isArray(m.dismissed_by)) return false;
-    var me = _myIdent();
-    for (var i = 0; i < m.dismissed_by.length; i++) {
-      if (m.dismissed_by[i] === me) return true;
-    }
-    return false;
+  function _saveDismissed() {
+    try { localStorage.setItem(DISMISSED_KEY, JSON.stringify(_dismissed)); } catch(e) {}
   }
 
   function _fmtTime(ts) {
@@ -1376,30 +1385,29 @@ loadSupabase();
     } catch(e) { return ''; }
   }
 
+  function _typeLabel(t) {
+    var map = { general:'&#9733; GENERAL', alert:'&#9888; ALERT',
+                info:'&#8505; INFO', special:'&#10024; SPECIAL' };
+    return map[t] || '&#9733; MESSAGE';
+  }
+
   function _renderBoard() {
     var list = document.getElementById('op-msg-list');
     if (!list) return;
-    var visible = _msgs.filter(function(m) { return !_isDismissed(m); });
+    var visible = _msgs.filter(function(m) { return !_dismissed[m.id]; });
     if (visible.length === 0) {
       list.innerHTML = '<div style="text-align:center;color:rgba(255,255,255,0.3);padding:20px;font-size:12px">No messages</div>';
     } else {
       list.innerHTML = visible.map(function(m) {
-        var subj = (m.subject || '').replace(/</g,'&lt;') || '(no subject)';
-        var body = (m.message || '').replace(/</g,'&lt;');
         return '<div class="op-msg-card ' + (m.type||'general') + '" id="msg-card-' + m.id + '">' +
-          '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">' +
-            '<span style="font-size:18px">' + (ICONS[m.type]||ICONS.general) + '</span>' +
-            '<div>' +
-              '<div class="op-msg-card-type">' + (TYPE_LABELS[m.type]||TYPE_LABELS.general) + '</div>' +
-              '<div style="font-size:12px;font-weight:bold;color:#f0e0ff;line-height:1.3">' + subj + '</div>' +
-            '</div>' +
-          '</div>' +
-          '<div class="op-msg-card-text">' + body + '</div>' +
+          '<div class="op-msg-card-type">' + _typeLabel(m.type) + '</div>' +
+          '<div class="op-msg-card-text">' + (m.message||'').replace(/</g,'&lt;') + '</div>' +
           '<div class="op-msg-card-time">' + _fmtTime(m.created_at) + '</div>' +
           '<button class="op-msg-card-dismiss" onclick="dismissMsg(' + m.id + ')">&#10005;</button>' +
           '</div>';
       }).join('');
     }
+    /* Update bell */
     _updateBell(visible.length);
   }
 
@@ -1413,36 +1421,31 @@ loadSupabase();
     }
   }
 
-  /* Soft dismiss — optimistic local hide + DB persist via RPC */
   window.dismissMsg = function(id) {
-    for (var i = 0; i < _msgs.length; i++) {
-      if (_msgs[i].id === id) {
-        if (!_msgs[i].dismissed_by) _msgs[i].dismissed_by = [];
-        _msgs[i].dismissed_by.push(_myIdent());
-        break;
-      }
-    }
+    _dismissed[id] = true;
+    _saveDismissed();
     _renderBoard();
     var board = document.getElementById('op-msg-board');
-    var visible = _msgs.filter(function(m) { return !_isDismissed(m); });
+    /* Close board if no more messages */
+    var visible = _msgs.filter(function(m) { return !_dismissed[m.id]; });
     if (visible.length === 0 && board) board.classList.remove('show');
-    if (_lobbyClient) {
-      _lobbyClient.rpc('dismiss_message', { p_id: id, p_player: _myIdent() })
-        .then(function(res) {
-          if (res && res.error) console.warn('[Messages] dismiss RPC error:', res.error.message);
-        });
-    }
   };
 
-  window.openMessageBoard  = function() { var b = document.getElementById('op-msg-board'); if (b) b.classList.add('show'); };
-  window.closeMessageBoard = function() { var b = document.getElementById('op-msg-board'); if (b) b.classList.remove('show'); };
+  window.openMessageBoard  = function() {
+    var b = document.getElementById('op-msg-board');
+    if (b) b.classList.add('show');
+  };
+  window.closeMessageBoard = function() {
+    var b = document.getElementById('op-msg-board');
+    if (b) b.classList.remove('show');
+  };
 
-  var _lobbyClient = null;
-
+  /* Load existing messages from DB */
   function _loadMessages(client) {
-    _lobbyClient = client;
-    client.from('messages')
-      .select('*').order('created_at', { ascending: false })
+    client.from('broadcast_messages')
+      .select('*')
+      .not('type', 'in', '("force_local_ball","restore_wide_ball")')
+      .order('created_at', { ascending: false })
       .then(function(res) {
         if (res.error || !res.data) return;
         _msgs = res.data;
@@ -1450,35 +1453,41 @@ loadSupabase();
       });
   }
 
+  /* Subscribe to new messages */
   function _subscribeMessages(client) {
-    client.channel('lobby-op-messages')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, function(p) {
+    client.channel('lobby-messages')
+      .on('postgres_changes', {
+        event: 'INSERT', schema: 'public', table: 'broadcast_messages'
+      }, function(p) {
         if (!p.new) return;
+        var t = (p.new.type || '').toLowerCase();
+        if (t === 'force_local_ball' || t === 'restore_wide_ball') return;
+        /* Prepend new message */
         _msgs.unshift(p.new);
         _renderBoard();
+        /* Auto-open board for new messages */
         var board = document.getElementById('op-msg-board');
         if (board) board.classList.add('show');
-        if (typeof window._queueOpMessage === 'function') window._queueOpMessage(p.new);
-      })
-      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'messages' }, function(p) {
-        if (!p.old) return;
-        _msgs = _msgs.filter(function(m) { return m.id !== p.old.id; });
-        _renderBoard();
       })
       .subscribe();
   }
 
+  /* Init — wait for Supabase to be ready */
   function _init() {
-    if (typeof window.supabase === 'undefined') { setTimeout(_init, 300); return; }
+    if (typeof window.supabase === 'undefined') {
+      setTimeout(_init, 300);
+      return;
+    }
+    var SUPABASE_URL_L      = 'https://gdmmoeggkqsvqnqyrubx.supabase.co';
+    var SUPABASE_ANON_KEY_L = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdkbW1vZWdna3FzdnFucXlydWJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4MDYzNTQsImV4cCI6MjA5NjM4MjM1NH0.i86afL3CMpmru4z3LZAbCJkxBiwo25QbwEji8tDBAis';
     try {
+      /* Re-use existing client if available, otherwise create one */
       var client = window._lobbySupabaseClient ||
-        window.supabase.createClient(
-          'https://gdmmoeggkqsvqnqyrubx.supabase.co',
-          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdkbW1vZWdna3FzdnFucXlydWJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4MDYzNTQsImV4cCI6MjA5NjM4MjM1NH0.i86afL3CMpmru4z3LZAbCJkxBiwo25QbwEji8tDBAis'
-        );
+        window.supabase.createClient(SUPABASE_URL_L, SUPABASE_ANON_KEY_L);
+      _loadDismissed();
       _loadMessages(client);
       _subscribeMessages(client);
-    } catch(e) { console.warn('[Messages] init error:', e); }
+    } catch(e) { console.warn('Message board init error:', e); }
   }
 
   /* Remove old single-message banner system if present */
