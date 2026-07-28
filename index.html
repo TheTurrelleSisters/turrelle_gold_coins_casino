@@ -107,7 +107,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
   position:relative;overflow:hidden;
 }
 
-/* Card background glow per game — v4.4 order:
+/* Card background glow per game — v4.6 order:
    1=TSBM  2=TSBMII  3=SP1  4=SP5  5=Maxine  6=Poke-Her */
 .card:nth-child(1)::before{content:'';position:absolute;inset:0;
   background:radial-gradient(ellipse at center top,rgba(180,0,255,.14) 0%,transparent 60%);pointer-events:none;}
@@ -357,6 +357,20 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
 .wp-title{font-size:16px;font-weight:900;color:#f0f0f0;letter-spacing:.5px;}
 
 .wp-body{flex:1;padding:24px 20px 20px;overflow-y:auto;}
+
+/* v4.6 FIX: #wd-genvoucher-panel had NO css rule at all — no display:none and
+   no .open state — so the Generate Voucher numpad rendered inline, permanently
+   visible, stacked BELOW the voucher list. That pushed the drawer content past
+   the viewport: the wallet looked mis-scaled and the voucher list was squeezed
+   out of view. It now overlays the drawer and is shown only via .open, which
+   wdOpenGenVoucher()/wdCloseGenVoucher() were already toggling. */
+#wd-genvoucher-panel{
+  position:absolute;top:0;right:0;bottom:0;left:0;inset:0;
+  background:#111214;z-index:5;
+  display:none;flex-direction:column;overflow:hidden;
+}
+#wd-genvoucher-panel.open{display:flex;}
+
 
 /* Numpad amount display */
 .wp-amt-wrap{text-align:center;margin-bottom:24px;}
@@ -1053,7 +1067,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
 
 
 
-<!-- v4.4 — version in tab bar settings -->
+<!-- v4.6 — version in tab bar settings -->
 
 <!-- OPERATOR BROADCAST MESSAGE BANNER -->
 <div id="op-message-banner">
@@ -1083,7 +1097,7 @@ body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9998;
 
 
 <script>
-/* Gold Coins Casino Lobby — Single Script Block v4.4 */
+/* Gold Coins Casino Lobby — Single Script Block v4.6 */
 var SUPABASE_URL      = 'https://gdmmoeggkqsvqnqyrubx.supabase.co';
 var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdkbW1vZWdna3FzdnFucXlydWJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4MDYzNTQsImV4cCI6MjA5NjM4MjM1NH0.i86afL3CMpmru4z3LZAbCJkxBiwo25QbwEji8tDBAis';
 
@@ -1500,7 +1514,7 @@ loadSupabase();
 </script>
 
 <!-- ════════════════════════════════════
-     WALLET DRAWER (v4.4 — voucher system)
+     WALLET DRAWER (v4.6 — voucher system)
 ════════════════════════════════════ -->
 <div id="wallet-drawer">
   <div class="wd-handle"><div class="wd-handle-pill"></div></div>
@@ -1615,10 +1629,10 @@ loadSupabase();
 </div>
 
 <!-- ════════════════════════════════════
-     TAB BAR + WALLET SCRIPT — v4.4
+     TAB BAR + WALLET SCRIPT — v4.6
 ════════════════════════════════════ -->
 <script>
-/* ── Virtual Wallet & Tab Bar — Gold Coins Casino v4.4 ── */
+/* ── Virtual Wallet & Tab Bar — Gold Coins Casino v4.6 ── */
 (function() {
 
   /* ── Constants ── */
